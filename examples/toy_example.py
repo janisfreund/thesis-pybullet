@@ -1,4 +1,6 @@
 import os.path as osp
+import time
+
 import pybullet as p
 import math
 import sys
@@ -13,6 +15,7 @@ from my_planar_robot import MyPlanarRobot
 class BoxDemo():
     def __init__(self):
         self.obstacles = []
+        self.poobjects = []
 
         p.connect(p.GUI)
         p.setGravity(0, 0, -9.8)
@@ -34,7 +37,7 @@ class BoxDemo():
         # self.goal_robot = pb_ompl.PbOMPLRobot(goal_id)
 
         # setup pb_ompl
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, 10, [[1], [0], [0]])
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
 
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
@@ -61,7 +64,8 @@ class BoxDemo():
         wall4 = self.add_box([0, -2, 0.1], [2, 0.1, 0.2])
 
         # add targets
-        self.add_door([0, 0.8, 0.1], [0.1, 1.5, 0.2])
+        self.add_door([-0.3, 0.8, 0.1], [0.1, 1.5, 0.2])
+        self.add_door([0.4, 1.5, 0.1], [0.1, 0.8, 0.2])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -74,19 +78,12 @@ class BoxDemo():
         self.obstacles.append(box_id)
         return box_id
 
-    def add_target(self, box_pos, radius):
-        colBoxId = p.createVisualShape(p.GEOM_SPHERE, radius=radius, rgbaColor=[0., 1., 0., 1.])
-        box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=colBoxId, basePosition=box_pos)
-
-        self.obstacles.append(box_id)
-        return box_id
-
     def add_door(self,  box_pos, half_box_size):
         visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=[0., 1., 0., 1.])
-        #colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=half_box_size)
-        box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, basePosition=box_pos)
+        colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=half_box_size)
+        box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
 
-        self.obstacles.append(box_id)
+        self.poobjects.append(box_id)
         return box_id
 
     def demo(self):
@@ -100,11 +97,15 @@ class BoxDemo():
         self.robot.set_state(start)
         # self.start_robot.set_state(start)
         # self.goal_robot.set_state(goal)
-        res, path = self.pb_ompl_interface.plan(goal)
+        res, paths = self.pb_ompl_interface.plan(goal)
         if res:
+            idx = 0
             while True:
-                self.pb_ompl_interface.execute(path, camera=True, projectionMatrix=self.projectionMatrix, linkid=10, camera_orientation=[[1], [0], [0]])
-        return res, path
+                path_idx = idx % len(paths)
+                print("Executing path {}".format(path_idx))
+                self.pb_ompl_interface.execute(paths[path_idx], camera=True, projectionMatrix=self.projectionMatrix, linkid=10, camera_orientation=[[1], [0], [0]])
+                idx += 1
+        return res, paths
 
 
 if __name__ == '__main__':

@@ -23,7 +23,7 @@ import cv2
 import os
 
 INTERPOLATE_NUM = 500
-DEFAULT_PLANNING_TIME = 20.0
+DEFAULT_PLANNING_TIME = 60.0
 
 class PbOMPLRobot():
     '''
@@ -118,7 +118,7 @@ class PbStateSpace(ob.RealVectorStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], camera_link = 10, camera_orientation = [[1], [0], [0]]) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], camera_link = 10, camera_orientation = [[1], [0], [0]]) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -127,6 +127,7 @@ class PbOMPL():
         self.robot = robot
         self.robot_id = robot.id
         self.obstacles = obstacles
+        self.poobjects = poobjects
         print(self.obstacles)
         self.camera_link = camera_link
         self.camera_orientation = camera_orientation
@@ -154,6 +155,12 @@ class PbOMPL():
         #                                                 custom_limits={}, max_distance=0, allow_collision_links=[])
 
         self.set_obstacles(obstacles)
+
+        # set POObjects
+        # pos = np.array([0, 0])
+        # len = np.array([0.1, 0.1])
+        # self.si.addObject(pos, len)
+
         self.set_planner("Partial") # RRT by default
 
     def set_obstacles(self, obstacles):
@@ -162,13 +169,15 @@ class PbOMPL():
         # update collision detection
         self.setup_collision_detection(self.robot, self.obstacles)
 
+        self.si.initWorld(len(self.poobjects))
+
     def add_obstacles(self, obstacle_id):
         self.obstacles.append(obstacle_id)
 
     def remove_obstacles(self, obstacle_id):
         self.obstacles.remove(obstacle_id)
 
-    def is_state_valid(self, state):
+    def is_state_valid(self, state, world):
         # satisfy bounds TODO
         # Should be unecessary if joint bounds is properly set
 
@@ -185,6 +194,17 @@ class PbOMPL():
                 # print('body collision', body1, body2)
                 # print(get_body_name(body1), get_body_name(body2))
                 return False
+
+        # check collision against partially observable objects
+        existing_objects = []
+        for i, obj in enumerate(world.getStateInt()):
+            if obj == 1:
+                existing_objects.append(self.poobjects[i])
+        po_pairs = list(product(self.moving_bodies, existing_objects))
+        for body1, body2 in po_pairs:
+            if utils.pairwise_collision(body1, body2):
+                return False
+
         return True
 
     # process camera image
@@ -221,10 +241,10 @@ class PbOMPL():
         # expect target to be green and only green object in scene
         target_mask = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
 
-        print('State: {}'.format(self.state_counter))
-
-        cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
-        cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
+        # print('State: {}'.format(self.state_counter))
+        #
+        # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
+        # cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
         self.state_counter += 1
 
         if cv2.countNonZero(target_mask) > 0:
@@ -236,8 +256,8 @@ class PbOMPL():
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
         moving_links = frozenset(
             [item for item in utils.get_moving_links(robot.id, robot.joint_idx) if not item in allow_collision_links])
-        moving_bodies = [(robot.id, moving_links)]
-        self.check_body_pairs = list(product(moving_bodies, obstacles))
+        self.moving_bodies = [(robot.id, moving_links)]
+        self.check_body_pairs = list(product(self.moving_bodies, obstacles))
 
     def set_planner(self, planner_name):
         '''
@@ -266,7 +286,7 @@ class PbOMPL():
 
         self.ss.setPlanner(self.planner)
 
-    def plan_start_goal(self, start, goal, allowed_time = 15.0):#DEFAULT_PLANNING_TIME
+    def plan_start_goal(self, start, goal, allowed_time = 5.0):#DEFAULT_PLANNING_TIME
         '''
         plan a path to gaol from the given robot start state
         '''
@@ -293,25 +313,34 @@ class PbOMPL():
         # attempt to solve the problem within allowed planning time
         solved = self.ss.solve(allowed_time)
         res = False
-        sol_path_list = []
+        all_sol_path_lists = []
         if solved:
             print("Found solution: interpolating into {} segments".format(INTERPOLATE_NUM))
             # print the path to screen
-            sol_path_geometric = self.ss.getSolutionPath()
-            sol_path_geometric.interpolate(INTERPOLATE_NUM)
-            sol_path_states = sol_path_geometric.getStates()
-            sol_path_list = [self.state_to_list(state) for state in sol_path_states]
+
+            pdef = self.ss.getProblemDefinition()
+            num_solutions = pdef.getSolutionCount()
+
+            for i in range(num_solutions):
+                sol_path_geometric = self.ss.getIdxSolutionPath(i)
+                sol_path_geometric.interpolate(INTERPOLATE_NUM)
+                sol_path_states = sol_path_geometric.getStates()
+                sol_path_list = [self.state_to_list(state) for state in sol_path_states]
+                all_sol_path_lists.append(sol_path_list)
             # print(len(sol_path_list))
             # print(sol_path_list)
-            for sol_path in sol_path_list:
-                self.is_state_valid(sol_path)
+
+            # TODO check interpolated states
+            # for sol_path in sol_path_list:
+            #     self.is_state_valid(sol_path)
+
             res = True
         else:
             print("No solution found")
 
         # reset robot state
         self.robot.set_state(orig_robot_state)
-        return res, sol_path_list
+        return res, all_sol_path_lists
 
     def plan(self, goal, allowed_time = DEFAULT_PLANNING_TIME):
         '''
@@ -367,7 +396,7 @@ class PbOMPL():
                     p.removeAllUserDebugItems()
                     p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
             p.stepSimulation()
-            time.sleep(0.001)
+            # time.sleep(0.001)
 
 
 
