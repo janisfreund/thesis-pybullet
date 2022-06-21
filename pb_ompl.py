@@ -211,6 +211,8 @@ class PbOMPL():
     # for now returns true/false depending on whether the object was found
     # may be changed later to location
     def target_found(self, state):
+        visible_objects = ou.vectorInt()
+
         # setting the state seems not to be necessary
         # self.robot.set_state(q)
 
@@ -239,7 +241,8 @@ class PbOMPL():
             projectionMatrix=projectionMatrix)
 
         # expect target to be green and only green object in scene
-        target_mask = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
+        target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
+        target_mask_red = cv2.inRange(rgbImg, (1, 0, 0, 0), (255, 50, 50, 255))
 
         # print('State: {}'.format(self.state_counter))
         #
@@ -247,10 +250,12 @@ class PbOMPL():
         # cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
         self.state_counter += 1
 
-        if cv2.countNonZero(target_mask) > 0:
-            return True
+        if cv2.countNonZero(target_mask_green) > 0:
+            visible_objects.append(0)
+        if cv2.countNonZero(target_mask_red) > 0:
+            visible_objects.append(1)
 
-        return False
+        return visible_objects
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
