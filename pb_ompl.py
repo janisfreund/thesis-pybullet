@@ -140,8 +140,14 @@ class PbOMPL():
         bounds = ob.RealVectorBounds(robot.num_dim)
         joint_bounds = self.robot.get_joint_bounds()
         for i, bound in enumerate(joint_bounds):
-            bounds.setLow(i, bound[0])
-            bounds.setHigh(i, bound[1])
+            # TODO hardcoded for debugging
+            if i == 0 or i == 1:
+                bounds.setLow(i, -2)
+                bounds.setHigh(i, 2)
+            else:
+                bounds.setLow(i, bound[0])
+                bounds.setHigh(i, bound[1])
+
         self.space.setBounds(bounds)
 
         self.ss = og.SimpleSetup(self.space)
