@@ -5,6 +5,8 @@ import pybullet as p
 import math
 import sys
 import pybullet_data
+from pybullet_utils import bullet_client as bc
+from pybullet_utils import urdfEditor as ed
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
@@ -22,13 +24,48 @@ class BoxDemo():
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        p.loadURDF("plane.urdf")
+        p.loadSDF("../models/warehouse/model.sdf")
+        print("Warehouse imported.")
 
         # load robot
-        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
+        # modified from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_utils/examples/combineUrdf.py
+        p0 = bc.BulletClient(connection_mode=p.DIRECT)
+        p0.setAdditionalSearchPath(pybullet_data.getDataPath())
+
+        p1 = bc.BulletClient(connection_mode=p.DIRECT)
+        p1.setAdditionalSearchPath(pybullet_data.getDataPath())
+
+        # can also connect using different modes, GUI, SHARED_MEMORY, TCP, UDP, SHARED_MEMORY_SERVER, GUI_SERVER
+
+        roomba = p1.loadURDF("../models/create_description/urdf/create_2.urdf", flags=p0.URDF_USE_IMPLICIT_CYLINDER)
+        franka = p0.loadURDF("../models/franka_description/robots/panda_arm.urdf")
+
+        ed0 = ed.UrdfEditor()
+        ed0.initializeFromBulletBody(roomba, p1._client)
+        ed1 = ed.UrdfEditor()
+        ed1.initializeFromBulletBody(franka, p0._client)
+
+        parentLinkIndex = 0
+
+        jointPivotXYZInParent = [0, 0, 0]
+        jointPivotRPYInParent = [0, 0, 0]
+
+        jointPivotXYZInChild = [0, 0, 0]
+        jointPivotRPYInChild = [0, 0, 0]
+
+        newjoint = ed0.joinUrdf(ed1, parentLinkIndex, jointPivotXYZInParent, jointPivotRPYInParent,
+                                jointPivotXYZInChild, jointPivotRPYInChild, p0._client, p1._client)
+        newjoint.joint_type = p0.JOINT_FIXED
+
+        ed0.saveUrdf("combined.urdf")
+
+        robot_id = p.loadURDF("combined.urdf", (0, 0, 0))
+        print("Robot imported")
         robot = MyPlanarRobot(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
+
+        time.sleep(10)
 
         # setup pb_ompl
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
@@ -51,15 +88,9 @@ class BoxDemo():
             p.removeBody(obstacle)
 
     def add_obstacles(self):
-        # add outer wall
-        wall1 = self.add_box([2, 0, 0.1], [0.1, 2, 0.2])
-        wall2 = self.add_box([-2, 0, 0.1], [0.1, 2, 0.2])
-        wall3 = self.add_box([0, 2, 0.1], [2, 0.1, 0.2])
-        wall4 = self.add_box([0, -2, 0.1], [2, 0.1, 0.2])
-
         # add targets
-        self.add_door([-0.3, 0.8, 0.1], [0.1, 1.5, 0.2], [0., 1., 0., 1.])
-        # self.add_door([0.4, 1.5, 0.1], [0.1, 0.8, 0.2], [1., 0., 0., 1.])
+        self.add_door([3, 2, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
+        self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -81,8 +112,8 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        start = [-1.5, 1.5, math.radians(90), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        goal = [1.5, 1.5, math.radians(0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        start = [-1.5, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         #visualize start and goal pose
         p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
@@ -91,44 +122,18 @@ class BoxDemo():
         self.robot.set_state(start)
         # self.start_robot.set_state(start)
         # self.goal_robot.set_state(goal)
-        res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
-
-        # for robot in robots:
-        #     robot.set_state(start)
-
-        # print tree
-        # if res:
-        #     self.pb_ompl_interface.print_tree(paths_tree, 100, True)
-        #     return res, paths
-
-        # execute paths in parallel
+        res, paths = self.pb_ompl_interface.plan(goal)
         if res:
-            robots = []
-            for _ in paths:
-                rid = p.loadURDF("../models/create_description_no_collision/urdf/create_2.urdf", (-1.5, 1.5, 0))
-                r = MyPlanarRobot(rid)
-                robots.append(r)
-            drawPath = True
+            idx = 0
             while True:
-                self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
-                                               linkid=10, camera_orientation=[[1], [0], [0]], robots=robots)
-                drawPath = False
-            return res, paths
-
-
-        # execute paths one after another
-        # if res:
-        #     idx = 0
-        #     while True:
-        #         path_idx = idx % len(paths)
-        #         print("Executing path {}".format(path_idx))
-        #         self.pb_ompl_interface.execute(paths[path_idx], camera=True, projectionMatrix=self.projectionMatrix, linkid=10, camera_orientation=[[1], [0], [0]])
-        #         idx += 1
-        # return res, paths
+                path_idx = idx % len(paths)
+                print("Executing path {}".format(path_idx))
+                self.pb_ompl_interface.execute(paths[path_idx], camera=True, projectionMatrix=self.projectionMatrix, linkid=8, camera_orientation=[[0], [0], [1]])
+                idx += 1
+        return res, paths
 
 
 if __name__ == '__main__':
-    # time.sleep(15)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")

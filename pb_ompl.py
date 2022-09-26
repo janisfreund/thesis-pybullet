@@ -22,7 +22,7 @@ import numpy as np
 import cv2
 import os
 
-INTERPOLATE_NUM = 500
+INTERPOLATE_NUM = 500#500
 DEFAULT_PLANNING_TIME = 60.0
 
 class PbOMPLRobot():
@@ -93,7 +93,6 @@ class PbOMPLRobot():
         for joint, value in zip(joints, positions):
             p.resetJointState(self.id, joint, value, targetVelocity=0)
 
-# TODO change to new state space
 class PbStateSpace(ob.RealVectorStateSpace):
     def __init__(self, num_dim) -> None:
         super().__init__(num_dim)
@@ -152,7 +151,6 @@ class PbOMPL():
 
         self.ss = og.SimpleSetup(self.space)
 
-        # TODO check camera image
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found))
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
         self.si = self.ss.getSpaceInformation()
@@ -325,16 +323,34 @@ class PbOMPL():
         solved = self.ss.solve(allowed_time)
         res = False
         all_sol_path_lists = []
+        tree_path_lists = []
         if solved:
-            print("Found solution: interpolating into {} segments".format(INTERPOLATE_NUM))
+            print("Found solution: interpolating into {} segments on average".format(INTERPOLATE_NUM))
             # print the path to screen
 
             pdef = self.ss.getProblemDefinition()
             num_solutions = pdef.getSolutionCount()
 
+            lens = []
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
-                sol_path_geometric.interpolate(INTERPOLATE_NUM)
+                lens.append(sol_path_geometric.length())
+            seg = INTERPOLATE_NUM / np.max(lens)
+
+            for i in range(num_solutions):
+                sol_path_geometric = self.ss.getIdxSolutionPath(i)
+
+                sol_path_states = sol_path_geometric.getStates()
+                sol_path_list = [self.state_to_list(state) for state in sol_path_states]
+                tree_path_lists.append(sol_path_list)
+
+                interpolate_num = int(sol_path_geometric.length() * seg)
+                if interpolate_num == 0:
+                    interpolate_num = 1
+                sol_path_geometric.interpolate(interpolate_num)
+                last_state = sol_path_geometric.getState(interpolate_num - 1)
+                for n in range(INTERPOLATE_NUM - interpolate_num):
+                    sol_path_geometric.append(last_state)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
                 all_sol_path_lists.append(sol_path_list)
@@ -351,7 +367,7 @@ class PbOMPL():
 
         # reset robot state
         self.robot.set_state(orig_robot_state)
-        return res, all_sol_path_lists
+        return res, all_sol_path_lists, tree_path_lists
 
     def plan(self, goal, allowed_time = DEFAULT_PLANNING_TIME):
         '''
@@ -360,7 +376,69 @@ class PbOMPL():
         start = self.robot.get_cur_state()
         return self.plan_start_goal(start, goal, allowed_time=allowed_time)
 
-    def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]]):
+    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[]):
+        '''
+        Execute a planned plan. Will visualize in pybullet.
+        Args:
+            path: list[state], a list of state
+            dynamics: allow dynamic simulation. If dynamics is false, this API will use robot.set_state(),
+                      meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
+                      path is collision free, this is somewhat acceptable.
+        '''
+        colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        p.removeBody(self.robot_id)
+        paths_ = np.moveaxis(paths, 0, 1)
+        print("Executing paths for " + str(len(robots)) + " robots.")
+        text_ids = [None] * len(robots)
+        for q in paths_:
+            if dynamics:
+                for i in range(self.robot.num_dim):
+                    p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i],force=5 * 240.)
+            else:
+                for i, robot in enumerate(robots):
+                    robot.set_state(q[i])
+                    if drawPaths:
+                        p.addUserDebugPoints(pointPositions=[[q[i][0], q[i][1], 0]], pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
+                    if text_ids[i] != None:
+                        p.removeUserDebugItem(text_ids[i])
+                    text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
+                    # if camera: TODO not all robots should have a camera
+                    if False:
+                        shape = p.getVisualShapeData(self.robot.id)
+                        # p.getAxisAngleFromQuaternion(self.robot.id)
+                        # p.getEulerFromQuaternion(self.robot.id)
+                        position = p.getLinkState(self.robot.id, linkid)[4]#0/4
+                        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                        r = np.reshape(r_mat, (-1, 3))
+                        orientation = np.dot(r, camera_orientation).flatten().tolist()
+                        up = -np.cross(np.array(camera_orientation).flatten(), orientation)
+                        target = [x + y for x, y in zip(position, orientation)]
+
+                        # position = p.getVisualShapeData(self.robot.id)[-1][5]
+                        # r = R.from_quat(p.getVisualShapeData(self.robot.id)[-1][6])
+                        # orientation = r.as_euler('zyx', degrees=True)
+
+                        # print('pos: {}'.format(position))
+                        # print('ori: {}'.format(orientation))
+
+                        viewMatrix = p.computeViewMatrix(
+                            cameraEyePosition=position,
+                            cameraTargetPosition=target,
+                            cameraUpVector=up)
+
+                        width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+                            width=224,
+                            height=224,
+                            viewMatrix=viewMatrix,
+                            projectionMatrix=projectionMatrix)
+                        # p.getDebugVisualizerCamera()
+                        p.removeAllUserDebugItems()
+                        p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
+            p.stepSimulation()
+            # time.sleep(0.01)
+
+    def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0,
+                camera_orientation=[[1], [0], [0]]):
         '''
         Execute a planned plan. Will visualize in pybullet.
         Args:
@@ -372,14 +450,14 @@ class PbOMPL():
         for q in path:
             if dynamics:
                 for i in range(self.robot.num_dim):
-                    p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i],force=5 * 240.)
+                    p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i], force=5 * 240.)
             else:
                 self.robot.set_state(q)
                 if camera:
                     shape = p.getVisualShapeData(self.robot.id)
                     # p.getAxisAngleFromQuaternion(self.robot.id)
                     # p.getEulerFromQuaternion(self.robot.id)
-                    position = p.getLinkState(self.robot.id, linkid)[4]#0/4
+                    position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
                     r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
                     r = np.reshape(r_mat, (-1, 3))
                     orientation = np.dot(r, camera_orientation).flatten().tolist()
@@ -405,9 +483,45 @@ class PbOMPL():
                         projectionMatrix=projectionMatrix)
                     # p.getDebugVisualizerCamera()
                     p.removeAllUserDebugItems()
-                    p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
+                    p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
             p.stepSimulation()
             # time.sleep(0.001)
+
+    # gets num_paths_per_idx paths per world
+    def print_tree(self, paths, num_paths_per_idx, is_belief):
+        currIdx = -1
+        idxParam = p.addUserDebugParameter('idxSelect', 0, int(len(paths)/num_paths_per_idx)-1, 0)
+        while True:
+            newIdx = int(p.readUserDebugParameter(idxParam))
+            if newIdx != currIdx:
+                currIdx = newIdx
+                p.removeAllUserDebugItems()
+                if is_belief:
+                    l = self.si.getWorld().getAllBeliefStates()[currIdx]
+                    p.addUserDebugText('Belief: ' + self.list_to_string(l), [-2.5, 2.5, 0], [0, 0, 0], 0.5, 0,
+                                       [0, 0, 0, 1])
+                    print('\n\n\nWorlds:')
+                    for i in range(len(self.si.getWorld().getWorldStates())):
+                        w = self.si.getWorld().getStateIntFromObjectState(self.si.getWorld().getWorldStates()[i])
+                        print(str(i) + ': ' + self.list_to_string(w))
+                else:
+                    l = self.si.getWorld().getStateIntFromObjectState(self.si.getWorld().getWorldStates()[currIdx])
+                    p.addUserDebugText('World: ' + self.list_to_string(l), [-2.5, 2.5, 0], [0, 0, 0], 0.5, 0, [ 0, 0, 0, 1 ])
+                for i in range(currIdx * num_paths_per_idx, currIdx * num_paths_per_idx + num_paths_per_idx):
+                    path = paths[i]
+                    if len(path) > 1:
+                        p.addUserDebugLine([path[0][0], path[0][1], 0], [path[1][0], path[1][1], 0],
+                                           lineColorRGB=[1, 0, 0], lineWidth=5)
+
+
+    def list_to_string(self, l):
+        s = '['
+        for i, e in enumerate(l):
+            s += str(e)
+            if i != len(l) - 1:
+                s += ', '
+        s += ']'
+        return s
 
 
 
