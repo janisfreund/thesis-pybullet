@@ -22,8 +22,8 @@ import numpy as np
 import cv2
 import os
 
-INTERPOLATE_NUM = 500#500
-DEFAULT_PLANNING_TIME = 60.0
+INTERPOLATE_NUM = 500
+DEFAULT_PLANNING_TIME = 20.0
 
 class PbOMPLRobot():
     '''
@@ -295,7 +295,7 @@ class PbOMPL():
 
         self.ss.setPlanner(self.planner)
 
-    def plan_start_goal(self, start, goal, allowed_time = 5.0):#DEFAULT_PLANNING_TIME
+    def plan_start_goal(self, start, goal, allowed_time = DEFAULT_PLANNING_TIME):#DEFAULT_PLANNING_TIME
         '''
         plan a path to gaol from the given robot start state
         '''
@@ -397,18 +397,19 @@ class PbOMPL():
             else:
                 for i, robot in enumerate(robots):
                     robot.set_state(q[i])
+                    # print("Robot state: " + self.list_to_string(q[i]))
                     if drawPaths:
                         p.addUserDebugPoints(pointPositions=[[q[i][0], q[i][1], 0]], pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
                     if text_ids[i] != None:
                         p.removeUserDebugItem(text_ids[i])
                     text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
                     # if camera: TODO not all robots should have a camera
-                    if False:
-                        shape = p.getVisualShapeData(self.robot.id)
+                    if i == 0:
+                        # shape = p.getVisualShapeData(self.robot.id)
                         # p.getAxisAngleFromQuaternion(self.robot.id)
                         # p.getEulerFromQuaternion(self.robot.id)
-                        position = p.getLinkState(self.robot.id, linkid)[4]#0/4
-                        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                        position = p.getLinkState(robot.id, linkid)[4]#0/4
+                        r_mat = p.getMatrixFromQuaternion(p.getLinkState(robot.id, linkid)[5])
                         r = np.reshape(r_mat, (-1, 3))
                         orientation = np.dot(r, camera_orientation).flatten().tolist()
                         up = -np.cross(np.array(camera_orientation).flatten(), orientation)

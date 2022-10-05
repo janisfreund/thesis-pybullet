@@ -81,8 +81,8 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        start = [-1.5, 1.5, math.radians(90), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        goal = [1.5, 1.5, math.radians(0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        start = [-1.5, 1.5, math.radians(90)]
+        goal = [1.5, 1.5, math.radians(0)]
 
         #visualize start and goal pose
         p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
@@ -98,7 +98,7 @@ class BoxDemo():
 
         # print tree
         # if res:
-        #     self.pb_ompl_interface.print_tree(paths_tree, 100, True)
+        #     self.pb_ompl_interface.print_tree(paths_tree, 100, False)
         #     return res, paths
 
         # execute paths in parallel

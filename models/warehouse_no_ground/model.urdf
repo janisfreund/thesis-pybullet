@@ -1,0 +1,14 @@
+<?xml version="0.0" ?>
+<robot name="warehouse">
+	<link name="base">
+        <visual>
+			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.03080"/>
+			<geometry>
+				<mesh filename="../models/warehouse_no_ground/model.dae" scale="1.00000 1.00000 1.00000"/>
+			</geometry>
+			<material name="mat_0_0">
+				<color rgba="1.00000 1.00000 1.00000 1.00000" />
+			</material>
+		</visual>
+    </link>
+</robot>

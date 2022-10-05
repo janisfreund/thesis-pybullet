@@ -3,4 +3,5 @@ examples/camera/
 .idea/
 *.dot
 *.blend
+*.blend1
 *.png
