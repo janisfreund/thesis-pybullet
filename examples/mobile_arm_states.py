@@ -7,11 +7,12 @@ import sys
 import pybullet_data
 from pybullet_utils import bullet_client as bc
 from pybullet_utils import urdfEditor as ed
+import numpy as np
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyPlanarRobot
+from pb_ompl import PbOMPLRobot
 from my_planar_robot import MyMobileArm
 
 
@@ -25,8 +26,6 @@ class BoxDemo():
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        # warehouse_ids = p.loadSDF("../models/warehouse_no_ground/model.sdf")
-        # p.resetBasePositionAndOrientation(warehouse_ids[0], (0.0, 0.0, 0.2), (0.0, 0.0, 0.0, 1.0))
         self.warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
         p.loadURDF("plane.urdf", useFixedBase=True)
         print("Warehouse imported.")
@@ -63,29 +62,18 @@ class BoxDemo():
 
         ed0.saveUrdf("combined.urdf")
 
-        robot_id = p.loadURDF("combined.urdf", (0, 0, 0))
+        robot_id = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
         print("Robot imported")
+        # robot = PbOMPLRobot(robot_id)
         robot = MyMobileArm(robot_id)
-        # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
-
-        # time.sleep(10)
 
         # setup pb_ompl
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
 
-        self.pb_ompl_interface.set_planner("Partial")
-        # self.pb_ompl_interface.set_planner("RRT")
-
         # add obstacles
         self.add_obstacles()
 
-        # add camera
-        self.projectionMatrix = p.computeProjectionMatrixFOV(
-            fov=45.0,
-            aspect=1.0,
-            nearVal=0.1,
-            farVal=3.1)
 
     def clear_obstacles(self):
         for obstacle in self.obstacles:
@@ -93,13 +81,10 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add targets
-        self.add_door([3, 2, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
+        self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1.,0., 0., 1.])
+        self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
-
-        # add mesh environment
-        # wh_info = p.getJointInfo(self.warehouse)
-        # print('Warehouse:')
-        # print(wh_info)
+        self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -121,32 +106,52 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        start = [-1.5, 1.5, 0, 0, 0, 0, 0, 0, 0, 0]
-        goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
+        joint_ids = []
+        state = []
+        for i in range (self.robot.num_dim):
+            joint_ids.append(p.addUserDebugParameter('Joint ' + str(i), -math.pi, math.pi, 0.))
+            state.append(0.)
+        set_link_id = p.addUserDebugParameter('Camera link ', 0, 25, 10)
+        linkid = 10
+        while True:
+            state_ = []
+            for i, id in enumerate(joint_ids):
+                state_.append(p.readUserDebugParameter(joint_ids[i]))
+            linkid_ = int(p.readUserDebugParameter(set_link_id))
+            if (state_ != state or linkid != linkid_):
+                self.robot.set_state(state_)
+                state = state_
 
-        #visualize start and goal pose
-        p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
-        p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
+                linkid = linkid_
+                camera_orientation = [[0], [0], [1]]
 
-        self.robot.set_state(start)
+                shape = p.getVisualShapeData(self.robot.id)
+                position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
+                r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                r = np.reshape(r_mat, (-1, 3))
+                orientation = np.dot(r, camera_orientation).flatten().tolist()
+                up = -np.cross(np.array(camera_orientation).flatten(), orientation)
+                target = [x + y for x, y in zip(position, orientation)]
 
-        # time.sleep(10)
+                viewMatrix = p.computeViewMatrix(
+                    cameraEyePosition=position,
+                    cameraTargetPosition=target,
+                    cameraUpVector=up)
 
-        # self.start_robot.set_state(start)
-        # self.goal_robot.set_state(goal)
-        res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
-        if res:
-            robots = []
-            for _ in paths:
-                rid = p.loadURDF("combined.urdf", (0, 0, 0))
-                r = MyMobileArm(rid)
-                robots.append(r)
-            drawPath = True
-            while True:
-                self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
-                                                   linkid=19, camera_orientation=[[0], [0], [1]], robots=robots)
-                drawPath = False
-            return res, paths
+                projectionMatrix = p.computeProjectionMatrixFOV(
+                    fov=45.0,
+                    aspect=1.0,
+                    nearVal=0.1,
+                    farVal=3.1)
+
+                width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+                    width=224,
+                    height=224,
+                    viewMatrix=viewMatrix,
+                    projectionMatrix=projectionMatrix)
+
+                p.removeAllUserDebugItems()
+                p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
 
 
 if __name__ == '__main__':

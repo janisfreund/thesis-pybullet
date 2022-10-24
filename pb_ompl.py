@@ -13,6 +13,8 @@ except ImportError:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
+import sys
+print(sys.path)
 import pybullet as p
 import utils
 import time
@@ -141,8 +143,8 @@ class PbOMPL():
         for i, bound in enumerate(joint_bounds):
             # TODO hardcoded for debugging
             if i == 0 or i == 1:
-                bounds.setLow(i, -2)
-                bounds.setHigh(i, 2)
+                bounds.setLow(i, -3.5)
+                bounds.setHigh(i, 3.5)
             else:
                 bounds.setLow(i, bound[0])
                 bounds.setHigh(i, bound[1])
