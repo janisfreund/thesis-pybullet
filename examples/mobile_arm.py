@@ -63,7 +63,7 @@ class BoxDemo():
 
         ed0.saveUrdf("combined.urdf")
 
-        robot_id = p.loadURDF("combined.urdf", (0, 0, 0))
+        robot_id = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
         print("Robot imported")
         robot = MyMobileArm(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
@@ -72,7 +72,9 @@ class BoxDemo():
         # time.sleep(10)
 
         # setup pb_ompl
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
+        # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
+        # for mobile arm
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 19, [[0], [0], [1]])
 
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
@@ -93,8 +95,10 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add targets
-        self.add_door([3, 2, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
-        self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        # self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        # self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
 
         # add mesh environment
         # wh_info = p.getJointInfo(self.warehouse)
@@ -121,7 +125,7 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        start = [-1.5, 1.5, 0, 0, 0, 0, 0, 0, 0, 0]
+        start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
         goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
 
         #visualize start and goal pose
@@ -138,7 +142,7 @@ class BoxDemo():
         if res:
             robots = []
             for _ in paths:
-                rid = p.loadURDF("combined.urdf", (0, 0, 0))
+                rid = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
                 r = MyMobileArm(rid)
                 robots.append(r)
             drawPath = True
@@ -150,6 +154,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
+    # time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")
