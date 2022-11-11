@@ -125,8 +125,10 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
-        goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
+        # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
+        # goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
+        start = [0, 0, 0, 0, 0]
+        goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
 
         #visualize start and goal pose
         p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)

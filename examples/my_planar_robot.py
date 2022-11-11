@@ -64,8 +64,13 @@ class MyPlanarRobot(PbOMPLRobot):
 class MyMobileArm(PbOMPLRobot):
     def __init__(self, id) -> None:
         self.id = id
-        self.joint_idx = [12, 13, 14, 15, 16, 17, 18]
-        self.num_dim = 10
+
+        # only 0,1,2,4,8 are important
+        # self.joint_idx = [12, 13, 14, 15, 16, 17, 18]
+        # self.num_dim = 10
+        self.joint_idx = [13, 17]
+        self.num_dim = 5
+
         self.reset()
 
         self.joint_bounds = []
@@ -73,12 +78,12 @@ class MyMobileArm(PbOMPLRobot):
         self.joint_bounds.append([-5, 5])  # y
         self.joint_bounds.append([math.radians(-180), math.radians(180)])  # theta
         self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
 
     def get_joint_bounds(self):
         return self.joint_bounds

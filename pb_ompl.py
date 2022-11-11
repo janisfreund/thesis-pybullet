@@ -23,7 +23,7 @@ import cv2
 import os
 
 INTERPOLATE_NUM = 200
-DEFAULT_PLANNING_TIME = 200.0
+DEFAULT_PLANNING_TIME = 30.0
 
 class PbOMPLRobot():
     '''
