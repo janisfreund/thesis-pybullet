@@ -7,14 +7,12 @@ except ImportError:
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'ompl/py-bindings'))
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'thesis-ompl/ompl/py-bindings'))
     # sys.path.insert(0, join(dirname(abspath(__file__)), '../whole-body-motion-planning/src/ompl/py-bindings'))
-    print(sys.path)
+    # print(sys.path)
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-import sys
-print(sys.path)
 import pybullet as p
 import utils
 import time
@@ -25,7 +23,7 @@ import cv2
 import os
 
 INTERPOLATE_NUM = 200
-DEFAULT_PLANNING_TIME = 20.0
+DEFAULT_PLANNING_TIME = 200.0
 
 class PbOMPLRobot():
     '''
@@ -250,6 +248,9 @@ class PbOMPL():
         # expect target to be green and only green object in scene
         target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
         target_mask_red = cv2.inRange(rgbImg, (1, 0, 0, 0), (255, 50, 50, 255))
+        target_mask_yellow = cv2.inRange(rgbImg, (0, 0, 1, 0), (50, 50, 255, 255))
+        target_mask_black = cv2.inRange(rgbImg, (0, 0, 0, 0), (50, 50, 50, 255))
+
 
         # print('State: {}'.format(self.state_counter))
         #
@@ -259,56 +260,15 @@ class PbOMPL():
 
         if cv2.countNonZero(target_mask_green) > 0:
             visible_objects.append(0)
-        if cv2.countNonZero(target_mask_red) > 0:
+        elif cv2.countNonZero(target_mask_red) > 0:
             visible_objects.append(1)
+        elif cv2.countNonZero(target_mask_yellow) > 0:
+            visible_objects.append(2)
+        elif cv2.countNonZero(target_mask_black) > 0:
+            visible_objects.append(3)
 
         return visible_objects
 
-        visible_objects = ou.vectorInt()
-
-        # setting the state seems not to be necessary
-        # self.robot.set_state(q)
-
-        projectionMatrix = p.computeProjectionMatrixFOV(
-            fov=45.0,
-            aspect=1.0,
-            nearVal=0.1,
-            farVal=3.1)
-
-        position = p.getLinkState(self.robot.id, self.camera_link)[4]  # 0/4
-        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link)[5])
-        r = np.reshape(r_mat, (-1, 3))
-        orientation = np.dot(r, self.camera_orientation).flatten().tolist()
-        up = -np.cross(np.array(self.camera_orientation).flatten(), orientation)
-        target = [x + y for x, y in zip(position, orientation)]
-
-        viewMatrix = p.computeViewMatrix(
-            cameraEyePosition=position,
-            cameraTargetPosition=target,
-            cameraUpVector=up)
-
-        width, height, rgbImg, depthImg, segImg = p.getCameraImage(
-            width=224,
-            height=224,
-            viewMatrix=viewMatrix,
-            projectionMatrix=projectionMatrix)
-
-        # expect target to be green and only green object in scene
-        target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
-        target_mask_red = cv2.inRange(rgbImg, (1, 0, 0, 0), (255, 50, 50, 255))
-
-        # print('State: {}'.format(self.state_counter))
-        #
-        # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
-        # cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
-        self.state_counter += 1
-
-        if cv2.countNonZero(target_mask_green) > 0:
-            visible_objects.append(0)
-        if cv2.countNonZero(target_mask_red) > 0:
-            visible_objects.append(1)
-
-        return visible_objects
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
