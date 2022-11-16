@@ -78,7 +78,7 @@ class MyMobileArm(PbOMPLRobot):
         self.joint_bounds.append([-5, 5])  # y
         self.joint_bounds.append([math.radians(-180), math.radians(180)])  # theta
         self.joint_bounds.append([math.radians(-180), math.radians(180)])
-        # self.joint_bounds.append([math.radians(-180), math.radians(180)])
+        self.joint_bounds.append([math.radians(-180), math.radians(180)])
         # self.joint_bounds.append([math.radians(-180), math.radians(180)])
         # self.joint_bounds.append([math.radians(-180), math.radians(180)])
         # self.joint_bounds.append([math.radians(-180), math.radians(180)])

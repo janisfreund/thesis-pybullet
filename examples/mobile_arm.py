@@ -19,6 +19,7 @@ class BoxDemo():
     def __init__(self):
         self.obstacles = []
         self.poobjects = []
+        self.poobjects_properties = []
 
         p.connect(p.GUI)
         p.setGravity(0, 0, -9.8)
@@ -74,7 +75,7 @@ class BoxDemo():
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 19, [[0], [0], [1]])
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]])
 
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
@@ -122,6 +123,8 @@ class BoxDemo():
         box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
 
         self.poobjects.append(box_id)
+        # self.poobjects_properties.append([box_pos, half_box_size, color])
+        self.poobjects_properties.append([visBoxId, colBoxId, box_pos])
         return box_id
 
     def demo(self):
@@ -142,15 +145,17 @@ class BoxDemo():
         # self.goal_robot.set_state(goal)
         res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
         if res:
-            robots = []
-            for _ in paths:
-                rid = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
-                r = MyMobileArm(rid)
-                robots.append(r)
+            # robots = []
+            # for _ in paths:
+            #     rid = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
+            #     r = MyMobileArm(rid)
+            #     robots.append(r)
             drawPath = True
             while True:
-                self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
-                                                   linkid=19, camera_orientation=[[0], [0], [1]], robots=robots)
+                # self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
+                #                                    linkid=19, camera_orientation=[[0], [0], [1]], robots=robots)
+                self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
+                                                   linkid=19, camera_orientation=[[0], [0], [1]])
                 drawPath = False
             return res, paths
 

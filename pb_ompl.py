@@ -117,7 +117,7 @@ class PbStateSpace(ob.RealVectorStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], camera_link = 10, camera_orientation = [[1], [0], [0]]) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]]) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -127,6 +127,7 @@ class PbOMPL():
         self.robot_id = robot.id
         self.obstacles = obstacles
         self.poobjects = poobjects
+        self.poobjects_properties = poobjects_properties
         print(self.obstacles)
         self.camera_link = camera_link
         self.camera_orientation = camera_orientation
@@ -182,6 +183,9 @@ class PbOMPL():
         self.obstacles.remove(obstacle_id)
 
     def is_state_valid(self, state, world):
+        # set poobjects to state of the world
+        # self.update_poobjects()
+
         # satisfy bounds TODO
         # Should be unecessary if joint bounds is properly set
 
@@ -216,6 +220,8 @@ class PbOMPL():
     # may be changed later to location
     # TODO don't hardcode camera properties
     def target_found(self, state):
+        # self.update_poobjects()
+
         visible_objects = ou.vectorInt()
 
         # setting the state seems not to be necessary
@@ -269,6 +275,22 @@ class PbOMPL():
 
         return visible_objects
 
+    def update_poobjects(self):
+        worldState = self.si.getWorld().getStateInt()
+        for i, objectState in enumerate(worldState):
+            # object exists
+            if objectState == 1:
+                # check if object exists
+                if self.poobjects[i] == -1:
+                    box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=self.poobjects_properties[i][0],
+                                               baseCollisionShapeIndex=self.poobjects_properties[i][1], basePosition=self.poobjects_properties[i][2])
+                    self.poobjects[i] = box_id
+            else:
+                try:
+                    p.removeBody(self.poobjects[i])
+                    self.poobjects[i] = -1
+                except:
+                    pass
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
@@ -415,6 +437,7 @@ class PbOMPL():
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
                             robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
+                            self.robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
                             # if drawPaths:
                             #     p.addUserDebugPoints(pointPositions=[[paths_[int(p.readUserDebugParameter(stepParam))][i][0], paths_[int(p.readUserDebugParameter(stepParam))][i][1], 0]],
                             #                          pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
@@ -447,6 +470,7 @@ class PbOMPL():
                     p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i],force=5 * 240.)
             else:
                 for i, robot in enumerate(robots):
+                    self.robot.set_state(q[i])
                     robot.set_state(q[i])
                     # print("Robot state: " + self.list_to_string(q[i]))
                     # if drawPaths:
@@ -489,6 +513,94 @@ class PbOMPL():
                         camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
             p.stepSimulation()
             # time.sleep(0.01)
+
+    def execute_one_after_another(self, paths, drawPaths, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]]):
+        '''
+        Execute a planned plan. Will visualize in pybullet.
+        Args:
+            path: list[state], a list of state
+            dynamics: allow dynamic simulation. If dynamics is false, this API will use robot.set_state(),
+                      meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
+                      path is collision free, this is somewhat acceptable.
+        '''
+        colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        # draw path
+        if drawPaths:
+            for i in range(self.ss.getProblemDefinition().getSolutionCount()):
+                for n in range(len(self.tree_path_lists[i]) - 1):
+                    p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                       [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
+                                       lineColorRGB=colors[i % len(colors)], lineWidth=5)
+        params = []
+        for i in range(len(paths)):
+            params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
+        camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
+        while True:
+            for n, path in enumerate(paths):
+                print("Executing path " + str(n))
+                for q in path:
+                    oldParam = [0] * len(paths)
+
+                    changed = False
+                    changedIdx = 0
+                    for idx, param in enumerate(params):
+                        if int(p.readUserDebugParameter(param)) > oldParam[idx]:
+                            changed = True
+                            changedIdx = idx
+                        oldParam[idx] = int(p.readUserDebugParameter(param))
+                    if changed:
+                        for q in paths[changedIdx]:
+                            self.robot.set_state(q)
+
+                            position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
+                            r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                            r = np.reshape(r_mat, (-1, 3))
+                            orientation = np.dot(r, camera_orientation).flatten().tolist()
+                            up = -np.cross(np.array(camera_orientation).flatten(), orientation)
+                            target = [x + y for x, y in zip(position, orientation)]
+
+                            viewMatrix = p.computeViewMatrix(
+                                cameraEyePosition=position,
+                                cameraTargetPosition=target,
+                                cameraUpVector=up)
+
+                            width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+                                width=224,
+                                height=224,
+                                viewMatrix=viewMatrix,
+                                projectionMatrix=projectionMatrix)
+
+                            p.removeUserDebugItem(camera_line_id)
+                            camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
+
+                            p.stepSimulation()
+                            # time.sleep(0.01)
+
+                    else:
+                        self.robot.set_state(q)
+
+                        position = p.getLinkState(self.robot.id, linkid)[4]#0/4
+                        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                        r = np.reshape(r_mat, (-1, 3))
+                        orientation = np.dot(r, camera_orientation).flatten().tolist()
+                        up = -np.cross(np.array(camera_orientation).flatten(), orientation)
+                        target = [x + y for x, y in zip(position, orientation)]
+
+                        viewMatrix = p.computeViewMatrix(
+                            cameraEyePosition=position,
+                            cameraTargetPosition=target,
+                            cameraUpVector=up)
+
+                        width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+                            width=224,
+                            height=224,
+                            viewMatrix=viewMatrix,
+                            projectionMatrix=projectionMatrix)
+
+                        p.removeUserDebugItem(camera_line_id)
+                        camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
+                    p.stepSimulation()
+                    # time.sleep(0.01)
 
     def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0,
                 camera_orientation=[[1], [0], [0]]):
