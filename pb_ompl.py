@@ -190,11 +190,11 @@ class PbOMPL():
         # Should be unecessary if joint bounds is properly set
 
         self.robot.set_state(self.state_to_list(state))
-        # check self-collision TODO doesnt work for mobile arm
-        # for link1, link2 in self.check_link_pairs:
-        #     if utils.pairwise_link_collision(self.robot_id, link1, self.robot_id, link2):
-        #         # print(get_body_name(body), get_link_name(body, link1), get_link_name(body, link2))
-        #         return False
+        # check self-collision TODO doesnt work for mobile arm with all dims (10)
+        for link1, link2 in self.check_link_pairs:
+            if utils.pairwise_link_collision(self.robot_id, link1, self.robot_id, link2):
+                # print(get_body_name(body), get_link_name(body, link1), get_link_name(body, link2))
+                return False
 
         # check collision against environment
         for body1, body2 in self.check_body_pairs:
