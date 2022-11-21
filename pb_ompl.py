@@ -22,6 +22,8 @@ import numpy as np
 import cv2
 import os
 
+print(dir(ob))
+
 INTERPOLATE_NUM = 200
 DEFAULT_PLANNING_TIME = 30.0
 
@@ -117,7 +119,7 @@ class PbStateSpace(ob.RealVectorStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]]) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = []) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -131,6 +133,7 @@ class PbOMPL():
         print(self.obstacles)
         self.camera_link = camera_link
         self.camera_orientation = camera_orientation
+        self.goal_states = goal_states
         self.state_counter = 0
         for f in os.listdir('./camera'):
             os.remove(os.path.join('./camera', f))
@@ -343,6 +346,8 @@ class PbOMPL():
             g[i] = goal[i]
 
         self.ss.setStartAndGoalStates(s, g)
+        for goal in self.goal_states:
+            self.ss.addGoalState(goal)
 
         # shape = p.getVisualShapeData(self.robot.id)
         # joints = p.getNumJoints(self.robot.id)

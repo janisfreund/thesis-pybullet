@@ -20,6 +20,7 @@ class BoxDemo():
         self.obstacles = []
         self.poobjects = []
         self.poobjects_properties = []
+        self.goal_states = []
 
         p.connect(p.GUI)
         p.setGravity(0, 0, -9.8)
@@ -75,7 +76,7 @@ class BoxDemo():
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]])
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states)
 
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
@@ -83,12 +84,20 @@ class BoxDemo():
         # add obstacles
         self.add_obstacles()
 
+        self.define_goal_states()
+
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
             aspect=1.0,
             nearVal=0.1,
             farVal=3.1)
+
+    def define_goal_states(self):
+        self.goal_states.append([2.844, 1.124, 1.455, 0.595, 1.422])
+        self.goal_states.append([-3.042, 1.124, 1.455, 0.595, 1.422])
+        self.goal_states.append([-3.042, -3.142, -1.587, 0.595, 1.422])
+        self.goal_states.append([3.009, -3.142, -1.587, 0.595, 1.422])
 
     def clear_obstacles(self):
         for obstacle in self.obstacles:
@@ -161,7 +170,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    # time.sleep(10)
+    time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")
