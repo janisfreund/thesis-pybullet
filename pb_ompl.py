@@ -22,8 +22,6 @@ import numpy as np
 import cv2
 import os
 
-print(dir(ob))
-
 INTERPOLATE_NUM = 200
 DEFAULT_PLANNING_TIME = 30.0
 
@@ -442,7 +440,7 @@ class PbOMPL():
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
                             robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
-                            self.robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
+                            # self.robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
                             # if drawPaths:
                             #     p.addUserDebugPoints(pointPositions=[[paths_[int(p.readUserDebugParameter(stepParam))][i][0], paths_[int(p.readUserDebugParameter(stepParam))][i][1], 0]],
                             #                          pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
@@ -475,7 +473,7 @@ class PbOMPL():
                     p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i],force=5 * 240.)
             else:
                 for i, robot in enumerate(robots):
-                    self.robot.set_state(q[i])
+                    # self.robot.set_state(q[i])
                     robot.set_state(q[i])
                     # print("Robot state: " + self.list_to_string(q[i]))
                     # if drawPaths:

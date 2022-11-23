@@ -94,10 +94,37 @@ class BoxDemo():
             farVal=3.1)
 
     def define_goal_states(self):
-        self.goal_states.append([2.844, 1.124, 1.455, 0.595, 1.422])
-        self.goal_states.append([-3.042, 1.124, 1.455, 0.595, 1.422])
-        self.goal_states.append([-3.042, -3.142, -1.587, 0.595, 1.422])
-        self.goal_states.append([3.009, -3.142, -1.587, 0.595, 1.422])
+        goal1 = pb_ompl.ou.vectorDouble()
+        goal1.append(2.844)
+        goal1.append(1.124)
+        goal1.append(1.455)
+        goal1.append(0.595)
+        goal1.append(1.422)
+        self.goal_states.append(goal1)
+
+        goal2 = pb_ompl.ou.vectorDouble()
+        goal2.append(-3.042)
+        goal2.append(1.124)
+        goal2.append(1.455)
+        goal2.append(0.595)
+        goal2.append(1.442)
+        self.goal_states.append(goal2)
+
+        goal3 = pb_ompl.ou.vectorDouble()
+        goal3.append(-3.042)
+        goal3.append(-3.142)
+        goal3.append(-1.587)
+        goal3.append(0.595)
+        goal3.append(1.422)
+        self.goal_states.append(goal3)
+
+        goal4 = pb_ompl.ou.vectorDouble()
+        goal4.append(3.009)
+        goal4.append(-3.142)
+        goal4.append(-1.587)
+        goal4.append(0.595)
+        goal4.append(1.422)
+        self.goal_states.append(goal4)
 
     def clear_obstacles(self):
         for obstacle in self.obstacles:
@@ -170,7 +197,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    time.sleep(10)
+    # time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")
