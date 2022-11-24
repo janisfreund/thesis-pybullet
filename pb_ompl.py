@@ -1,3 +1,5 @@
+import math
+
 try:
     from ompl import util as ou
     from ompl import base as ob
@@ -21,6 +23,8 @@ import copy
 import numpy as np
 import cv2
 import os
+import operator
+from scipy.spatial.transform import Rotation as R
 
 INTERPOLATE_NUM = 200
 DEFAULT_PLANNING_TIME = 30.0
@@ -292,6 +296,33 @@ class PbOMPL():
                     self.poobjects[i] = -1
                 except:
                     pass
+
+
+    def sample_good_camera_position(self, obj_pos, base_pos, base_offset, camera_link_id):
+        # position is directly above base + offset in z direction
+        position = [base_pos[0], base_pos[1], base_offset]
+        target = obj_pos
+        direction = list(map(operator.sub, target, position))
+        up = [0, 0, 1]
+        s = np.cross(direction, up)
+        u = np.cross(direction, s)
+        mat = np.array([direction, u, s]).transpose()
+
+        quaternion = R.from_matrix(mat).as_quat()
+        euler = R.from_matrix(mat).as_euler()
+
+        # xyz = np.cross(position, target)
+        # w = [math.sqrt((len(position) ^ 2) * (len(target) ^ 2)) + np.dot(position, target)]
+
+        # orientation = [*xyz, *w]
+        # orientation_norm = orientation / np.linalg.norm(orientation)
+
+        inv = p.calculateInverseKinematics(self.robot.id, camera_link_id, position, targetOrientation=quaternion)
+        state = [base_pos[0], base_pos[1], inv[0], inv[1], inv[2]]
+        print(state)
+
+        self.robot.set_state(state)
+        p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []

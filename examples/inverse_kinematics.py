@@ -103,30 +103,6 @@ class BoxDemo():
         goal1.append(1.422)
         self.goal_states.append(goal1)
 
-        goal2 = pb_ompl.ou.vectorDouble()
-        goal2.append(-3.042)
-        goal2.append(1.124)
-        goal2.append(1.455)
-        goal2.append(0.595)
-        goal2.append(1.442)
-        self.goal_states.append(goal2)
-
-        goal3 = pb_ompl.ou.vectorDouble()
-        goal3.append(-3.042)
-        goal3.append(-3.142)
-        goal3.append(-1.587)
-        goal3.append(0.595)
-        goal3.append(1.422)
-        self.goal_states.append(goal3)
-
-        goal4 = pb_ompl.ou.vectorDouble()
-        goal4.append(3.009)
-        goal4.append(-3.142)
-        goal4.append(-1.587)
-        goal4.append(0.595)
-        goal4.append(1.422)
-        self.goal_states.append(goal4)
-
     def clear_obstacles(self):
         for obstacle in self.obstacles:
             p.removeBody(obstacle)
@@ -134,14 +110,6 @@ class BoxDemo():
     def add_obstacles(self):
         # add targets
         self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
-        self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
-        self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
-        self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
-
-        # add mesh environment
-        # wh_info = p.getJointInfo(self.warehouse)
-        # print('Warehouse:')
-        # print(wh_info)
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -165,8 +133,6 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
-        # goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
         start = [0, 0, 0, 0, 0]
         goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
 
@@ -176,25 +142,7 @@ class BoxDemo():
 
         self.robot.set_state(start)
 
-        # time.sleep(10)
-
-        # self.start_robot.set_state(start)
-        # self.goal_robot.set_state(goal)
-        res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
-        if res:
-            # robots = []
-            # for _ in paths:
-            #     rid = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
-            #     r = MyMobileArm(rid)
-            #     robots.append(r)
-            drawPath = True
-            while True:
-                # self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
-                #                                    linkid=19, camera_orientation=[[0], [0], [1]], robots=robots)
-                self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
-                                                   linkid=19, camera_orientation=[[0], [0], [1]])
-                drawPath = False
-            return res, paths
+        self.pb_ompl_interface.sample_good_camera_position([3, 1.9, 1.1], [0, 0, 0], 1, 19)
 
 
 if __name__ == '__main__':
