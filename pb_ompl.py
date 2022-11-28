@@ -300,16 +300,29 @@ class PbOMPL():
 
     def sample_good_camera_position(self, obj_pos, base_pos, base_offset, camera_link_id):
         # position is directly above base + offset in z direction
-        position = [base_pos[0], base_pos[1], base_offset]
+        alt_offset = p.getLinkState(self.robot.id, camera_link_id)[4][2]
+        position = [base_pos[0], base_pos[1], alt_offset]
         target = obj_pos
         direction = list(map(operator.sub, target, position))
+        direction = direction / np.linalg.norm(direction)
         up = [0, 0, 1]
-        s = np.cross(direction, up)
-        u = np.cross(direction, s)
-        mat = np.array([direction, u, s]).transpose()
 
-        quaternion = R.from_matrix(mat).as_quat()
-        euler = R.from_matrix(mat).as_euler()
+        xaxis = np.cross(up, direction)
+        xaxis = xaxis / np.linalg.norm(xaxis)
+
+        yaxis = np.cross(direction, xaxis)
+        yaxis = yaxis / np.linalg.norm(yaxis)
+
+        mat = np.array([xaxis, yaxis, direction]).transpose()
+
+        debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
+        debug_point = [x + y for x, y in zip(position, debug_orientation)]
+
+        quaternion_ = R.from_matrix(mat).as_quat()
+        quaternion = [quaternion_[0], quaternion_[1], quaternion_[3], quaternion_[2]]
+        test_quaternion_z = [0, 0, 1, 0] # up
+        test_quaternion_y = [0, 0, 0, 1]
+        # euler = R.from_matrix(mat).as_euler()
 
         # xyz = np.cross(position, target)
         # w = [math.sqrt((len(position) ^ 2) * (len(target) ^ 2)) + np.dot(position, target)]
@@ -317,12 +330,24 @@ class PbOMPL():
         # orientation = [*xyz, *w]
         # orientation_norm = orientation / np.linalg.norm(orientation)
 
-        inv = p.calculateInverseKinematics(self.robot.id, camera_link_id, position, targetOrientation=quaternion)
+        inv = p.calculateInverseKinematics(self.robot.id, camera_link_id, position, targetOrientation=quaternion_, maxNumIterations=100)
         state = [base_pos[0], base_pos[1], inv[0], inv[1], inv[2]]
         print(state)
 
         self.robot.set_state(state)
+
+        position_cam = p.getLinkState(self.robot.id, camera_link_id)[4]
+        r_quaternion = p.getLinkState(self.robot.id, camera_link_id)[5]
+        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, camera_link_id)[5])
+        r = np.reshape(r_mat, (-1, 3))
+        orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
+        debug_target = [x + y for x, y in zip(position_cam, orientation)]
+
         p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
+        p.addUserDebugLine(position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
+        p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
+
+        print("")
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
