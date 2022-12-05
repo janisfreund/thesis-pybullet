@@ -14,6 +14,10 @@ import pb_ompl
 from my_planar_robot import MyPlanarRobot
 from my_planar_robot import MyMobileArm
 
+GOAL = 1
+# TARGET = []
+# TARGET = [1.7891253349769771, -6.208575926370699, 1.1]
+TARGET = [-2.260535103873994, 3.435942762254409, 1.1]
 
 class BoxDemo():
     def __init__(self):
@@ -21,6 +25,8 @@ class BoxDemo():
         self.poobjects = []
         self.poobjects_properties = []
         self.goal_states = []
+
+        self.goalPos = [[3, 1.9, 1.1], [-3, 1.9, 1.1], [-3, -4, 1.1], [3, -4, 1.1]]
 
         p.connect(p.GUI)
         p.setGravity(0, 0, -9.8)
@@ -33,46 +39,11 @@ class BoxDemo():
         p.loadURDF("plane.urdf", useFixedBase=True)
         print("Warehouse imported.")
 
-        # load robot
-        if False:
-            # modified from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_utils/examples/combineUrdf.py
-            p0 = bc.BulletClient(connection_mode=p.DIRECT)
-            p0.setAdditionalSearchPath(pybullet_data.getDataPath())
-
-            p1 = bc.BulletClient(connection_mode=p.DIRECT)
-            p1.setAdditionalSearchPath(pybullet_data.getDataPath())
-
-            # can also connect using different modes, GUI, SHARED_MEMORY, TCP, UDP, SHARED_MEMORY_SERVER, GUI_SERVER
-
-            roomba = p1.loadURDF("../models/create_description/urdf/create_2.urdf", flags=p0.URDF_USE_IMPLICIT_CYLINDER)
-            franka = p0.loadURDF("../models/franka_description/robots/panda_arm.urdf")
-
-            ed0 = ed.UrdfEditor()
-            ed0.initializeFromBulletBody(roomba, p1._client)
-            ed1 = ed.UrdfEditor()
-            ed1.initializeFromBulletBody(franka, p0._client)
-
-            parentLinkIndex = 0
-
-            jointPivotXYZInParent = [0, 0, 0]
-            jointPivotRPYInParent = [0, 0, 0]
-
-            jointPivotXYZInChild = [0, 0, 0]
-            jointPivotRPYInChild = [0, 0, 0]
-
-            newjoint = ed0.joinUrdf(ed1, parentLinkIndex, jointPivotXYZInParent, jointPivotRPYInParent,
-                                    jointPivotXYZInChild, jointPivotRPYInChild, p0._client, p1._client)
-            newjoint.joint_type = p0.JOINT_FIXED
-
-            ed0.saveUrdf("combined.urdf")
-
         robot_id = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
         print("Robot imported")
         robot = MyMobileArm(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
-
-        # time.sleep(10)
 
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
@@ -85,8 +56,6 @@ class BoxDemo():
         # add obstacles
         self.add_obstacles()
 
-        self.define_goal_states()
-
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -94,22 +63,16 @@ class BoxDemo():
             nearVal=0.1,
             farVal=3.1)
 
-    def define_goal_states(self):
-        goal1 = pb_ompl.ou.vectorDouble()
-        goal1.append(2.844)
-        goal1.append(1.124)
-        goal1.append(1.455)
-        goal1.append(0.595)
-        goal1.append(1.422)
-        self.goal_states.append(goal1)
-
     def clear_obstacles(self):
         for obstacle in self.obstacles:
             p.removeBody(obstacle)
 
     def add_obstacles(self):
         # add targets
-        self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        if len(TARGET) == 0:
+            self.add_door(self.goalPos[GOAL], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        else:
+            self.add_door(TARGET, [0.05, 0.05, 0.05], [1., 0., 0., 1.])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -142,7 +105,10 @@ class BoxDemo():
 
         self.robot.set_state(start)
 
-        self.pb_ompl_interface.sample_good_camera_position([3, 1.9, 1.1], [0, 0, 0], 1, 19)
+        if len(TARGET) == 0:
+            self.pb_ompl_interface.sample_good_camera_position(self.goalPos[GOAL], [0, 0, 0], 1, 19)
+        else:
+            self.pb_ompl_interface.sample_good_camera_position(TARGET, [0, 0, 0], 1, 19)
 
 
 if __name__ == '__main__':

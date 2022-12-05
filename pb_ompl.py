@@ -26,6 +26,8 @@ import os
 import operator
 from scipy.spatial.transform import Rotation as R
 
+from examples.camera_state_sampler import CameraStateSampler
+
 INTERPOLATE_NUM = 200
 DEFAULT_PLANNING_TIME = 30.0
 
@@ -331,7 +333,8 @@ class PbOMPL():
         # orientation_norm = orientation / np.linalg.norm(orientation)
 
         inv = p.calculateInverseKinematics(self.robot.id, camera_link_id, position, targetOrientation=quaternion_, maxNumIterations=100)
-        state = [base_pos[0], base_pos[1], inv[0], inv[1], inv[2]]
+        
+        state = [base_pos[0], base_pos[1], 0, inv[0], inv[1], inv[2], inv[3], inv[4], inv[5], inv[6]]
         print(state)
 
         self.robot.set_state(state)
@@ -346,8 +349,6 @@ class PbOMPL():
         p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
         p.addUserDebugLine(position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
         p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
-
-        print("")
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
@@ -382,6 +383,14 @@ class PbOMPL():
             return
 
         self.ss.setPlanner(self.planner)
+
+
+    def set_state_sampler_name(self, sampler_name):
+        if sampler_name == "camera":
+            _, _, zstate = p.getLinkState(self.robot.id, self.camera_link)[4]
+            camera_sampler = CameraStateSampler(self.si, zstate, self.camera_link, self.robot,
+                                                [prop[2] for prop in self.poobjects_properties])
+            self.set_state_sampler(camera_sampler)
 
     def plan_start_goal(self, start, goal, allowed_time = DEFAULT_PLANNING_TIME):#DEFAULT_PLANNING_TIME
         '''

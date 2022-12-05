@@ -87,6 +87,8 @@ class BoxDemo():
 
         self.define_goal_states()
 
+        self.pb_ompl_interface.set_state_sampler_name("camera")
+
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,

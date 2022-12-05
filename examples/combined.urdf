@@ -467,7 +467,7 @@
 		<origin rpy="-1.57080 0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
-	<joint name="panda_joint3" type="fixed">
+	<joint name="panda_joint3" type="revolute">
 		<parent link="panda_link2"/>
 		<child link="panda_link3"/>
 		<limit effort="87.00000" lower="-2.89730" upper="2.89730" velocity="2.17500"/>
@@ -475,7 +475,7 @@
 		<origin rpy="1.57080 -0.00000 0.00000" xyz="0.00000 -0.31600 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
-	<joint name="panda_joint4" type="fixed">
+	<joint name="panda_joint4" type="revolute">
 		<parent link="panda_link3"/>
 		<child link="panda_link4"/>
 		<limit effort="87.00000" lower="-3.07180" upper="-0.06980" velocity="2.17500"/>
@@ -483,7 +483,7 @@
 		<origin rpy="1.57080 -0.00000 0.00000" xyz="0.08250 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
-	<joint name="panda_joint5" type="fixed">
+	<joint name="panda_joint5" type="revolute">
 		<parent link="panda_link4"/>
 		<child link="panda_link5"/>
 		<limit effort="12.00000" lower="-2.89730" upper="2.89730" velocity="2.61000"/>
@@ -499,7 +499,7 @@
 		<origin rpy="1.57080 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
-	<joint name="panda_joint7" type="fixed">
+	<joint name="panda_joint7" type="revolute">
 		<parent link="panda_link6"/>
 		<child link="panda_link7"/>
 		<limit effort="12.00000" lower="-2.89730" upper="2.89730" velocity="2.61000"/>
