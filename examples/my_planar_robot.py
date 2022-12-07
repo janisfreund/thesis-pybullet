@@ -109,6 +109,8 @@ class MyMobileArm(PbOMPLRobot):
         # only 0,1,2,4,8 are important
         self.joint_idx = [12, 13, 14, 15, 16, 17, 18]
         self.num_dim = 10
+        # self.joint_idx = [12, 13, 15, 17]
+        # self.num_dim = 7
 
         self.reset()
 

@@ -94,7 +94,7 @@ class BoxDemo():
             fov=45.0,
             aspect=1.0,
             nearVal=0.1,
-            farVal=3.1)
+            farVal=8)
 
     def define_goal_states(self):
         goal1 = pb_ompl.ou.vectorDouble()
@@ -200,7 +200,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    # time.sleep(10)
+    time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")

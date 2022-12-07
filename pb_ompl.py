@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 200
-DEFAULT_PLANNING_TIME = 30.0
+DEFAULT_PLANNING_TIME = 80.0
 
 class PbOMPLRobot():
     '''
@@ -198,10 +198,10 @@ class PbOMPL():
 
         self.robot.set_state(self.state_to_list(state))
         # check self-collision TODO doesnt work for mobile arm with all dims (10)
-        for link1, link2 in self.check_link_pairs:
-            if utils.pairwise_link_collision(self.robot_id, link1, self.robot_id, link2):
-                # print(get_body_name(body), get_link_name(body, link1), get_link_name(body, link2))
-                return False
+        # for link1, link2 in self.check_link_pairs:
+        #     if utils.pairwise_link_collision(self.robot_id, link1, self.robot_id, link2):
+        #         # print(get_body_name(body), get_link_name(body, link1), get_link_name(body, link2))
+        #         return False
 
         # check collision against environment
         for body1, body2 in self.check_body_pairs:
@@ -238,7 +238,7 @@ class PbOMPL():
             fov=45.0,
             aspect=1.0,
             nearVal=0.1,
-            farVal=3.1)
+            farVal=8)
 
         position = p.getLinkState(self.robot.id, self.camera_link)[4]  # 0/4
         r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link)[5])
@@ -333,7 +333,7 @@ class PbOMPL():
         # orientation_norm = orientation / np.linalg.norm(orientation)
 
         inv = p.calculateInverseKinematics(self.robot.id, camera_link_id, position, targetOrientation=quaternion_, maxNumIterations=100)
-        
+
         state = [base_pos[0], base_pos[1], 0, inv[0], inv[1], inv[2], inv[3], inv[4], inv[5], inv[6]]
         print(state)
 
@@ -433,7 +433,9 @@ class PbOMPL():
             lens = []
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
-                lens.append(sol_path_geometric.length())
+                sol_path_states = sol_path_geometric.getStates()
+                sol_path_list = [self.state_to_list(state) for state in sol_path_states]
+                lens.append(self.calc_path_len(sol_path_list))
             seg = INTERPOLATE_NUM / np.max(lens)
 
             for i in range(num_solutions):
@@ -443,7 +445,7 @@ class PbOMPL():
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
                 self.tree_path_lists.append(sol_path_list)
 
-                interpolate_num = int(sol_path_geometric.length() * seg)
+                interpolate_num = int(lens[i] * seg)
                 if interpolate_num == 0:
                     interpolate_num = 1
                 sol_path_geometric.interpolate(interpolate_num)
@@ -467,6 +469,21 @@ class PbOMPL():
         # reset robot state
         self.robot.set_state(orig_robot_state)
         return res, all_sol_path_lists, self.tree_path_lists
+
+
+    def calc_path_len(self, path):
+        '''
+        Calculate length of base movement
+        '''
+        path_len = 0
+        for i in range(len(path) - 1):
+            dist = 0
+            for n in range(2):
+                diff = path[i][n] - path[i+1][n]
+                dist += diff * diff
+            path_len += math.sqrt(dist)
+        return path_len
+
 
     def plan(self, goal, allowed_time = DEFAULT_PLANNING_TIME):
         '''
