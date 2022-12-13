@@ -28,8 +28,8 @@ from scipy.spatial.transform import Rotation as R
 
 from examples.camera_state_sampler import CameraStateSampler
 
-INTERPOLATE_NUM = 200
-DEFAULT_PLANNING_TIME = 80.0
+INTERPOLATE_NUM = 500
+DEFAULT_PLANNING_TIME = 60.0
 
 class PbOMPLRobot():
     '''
@@ -637,7 +637,36 @@ class PbOMPL():
                         for q in paths[changedIdx]:
                             self.robot.set_state(q)
 
-                            position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
+                            if camera:
+                                position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
+                                r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
+                                r = np.reshape(r_mat, (-1, 3))
+                                orientation = np.dot(r, camera_orientation).flatten().tolist()
+                                up = -np.cross(np.array(camera_orientation).flatten(), orientation)
+                                target = [x + y for x, y in zip(position, orientation)]
+
+                                viewMatrix = p.computeViewMatrix(
+                                    cameraEyePosition=position,
+                                    cameraTargetPosition=target,
+                                    cameraUpVector=up)
+
+                                width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+                                    width=224,
+                                    height=224,
+                                    viewMatrix=viewMatrix,
+                                    projectionMatrix=projectionMatrix)
+
+                                p.removeUserDebugItem(camera_line_id)
+                                camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
+
+                            p.stepSimulation()
+                            time.sleep(0.01)
+
+                    else:
+                        self.robot.set_state(q)
+
+                        if camera:
+                            position = p.getLinkState(self.robot.id, linkid)[4]#0/4
                             r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
                             r = np.reshape(r_mat, (-1, 3))
                             orientation = np.dot(r, camera_orientation).flatten().tolist()
@@ -656,36 +685,9 @@ class PbOMPL():
                                 projectionMatrix=projectionMatrix)
 
                             p.removeUserDebugItem(camera_line_id)
-                            camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
-
-                            p.stepSimulation()
-                            # time.sleep(0.01)
-
-                    else:
-                        self.robot.set_state(q)
-
-                        position = p.getLinkState(self.robot.id, linkid)[4]#0/4
-                        r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
-                        r = np.reshape(r_mat, (-1, 3))
-                        orientation = np.dot(r, camera_orientation).flatten().tolist()
-                        up = -np.cross(np.array(camera_orientation).flatten(), orientation)
-                        target = [x + y for x, y in zip(position, orientation)]
-
-                        viewMatrix = p.computeViewMatrix(
-                            cameraEyePosition=position,
-                            cameraTargetPosition=target,
-                            cameraUpVector=up)
-
-                        width, height, rgbImg, depthImg, segImg = p.getCameraImage(
-                            width=224,
-                            height=224,
-                            viewMatrix=viewMatrix,
-                            projectionMatrix=projectionMatrix)
-
-                        p.removeUserDebugItem(camera_line_id)
-                        camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
+                            camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
                     p.stepSimulation()
-                    # time.sleep(0.01)
+                    time.sleep(0.01)
 
     def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0,
                 camera_orientation=[[1], [0], [0]]):

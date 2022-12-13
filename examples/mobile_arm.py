@@ -101,32 +101,52 @@ class BoxDemo():
         goal1.append(2.844)
         goal1.append(1.124)
         goal1.append(1.455)
+        goal1.append(0)
         goal1.append(0.595)
+        goal1.append(0)
+        goal1.append(0)
+        goal1.append(0)
         goal1.append(1.422)
+        goal1.append(0)
         self.goal_states.append(goal1)
 
         goal2 = pb_ompl.ou.vectorDouble()
         goal2.append(-3.042)
         goal2.append(1.124)
         goal2.append(1.455)
+        goal2.append(0)
         goal2.append(0.595)
+        goal2.append(0)
+        goal2.append(0)
+        goal2.append(0)
         goal2.append(1.442)
+        goal2.append(0)
         self.goal_states.append(goal2)
 
         goal3 = pb_ompl.ou.vectorDouble()
         goal3.append(-3.042)
         goal3.append(-3.142)
         goal3.append(-1.587)
+        goal3.append(0)
         goal3.append(0.595)
+        goal3.append(0)
+        goal3.append(0)
+        goal3.append(0)
         goal3.append(1.422)
+        goal3.append(0)
         self.goal_states.append(goal3)
 
         goal4 = pb_ompl.ou.vectorDouble()
         goal4.append(3.009)
         goal4.append(-3.142)
         goal4.append(-1.587)
+        goal4.append(0)
         goal4.append(0.595)
+        goal4.append(0)
+        goal4.append(0)
+        goal4.append(0)
         goal4.append(1.422)
+        goal4.append(0)
         self.goal_states.append(goal4)
 
     def clear_obstacles(self):
@@ -193,7 +213,7 @@ class BoxDemo():
             while True:
                 # self.pb_ompl_interface.execute_all(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
                 #                                    linkid=19, camera_orientation=[[0], [0], [1]], robots=robots)
-                self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=True, projectionMatrix=self.projectionMatrix,
+                self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
                                                    linkid=19, camera_orientation=[[0], [0], [1]])
                 drawPath = False
             return res, paths
