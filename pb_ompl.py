@@ -28,7 +28,7 @@ from scipy.spatial.transform import Rotation as R
 
 from examples.camera_state_sampler import CameraStateSampler
 
-INTERPOLATE_NUM = 500
+INTERPOLATE_NUM = 50
 DEFAULT_PLANNING_TIME = 60.0
 
 class PbOMPLRobot():
@@ -428,6 +428,7 @@ class PbOMPL():
             # print the path to screen
 
             pdef = self.ss.getProblemDefinition()
+
             num_solutions = pdef.getSolutionCount()
 
             lens = []
@@ -448,7 +449,7 @@ class PbOMPL():
                 interpolate_num = int(lens[i] * seg)
                 if interpolate_num == 0:
                     interpolate_num = 1
-                sol_path_geometric.interpolate(interpolate_num)
+                sol_path_geometric.interpolateBase(interpolate_num, 2)
                 last_state = sol_path_geometric.getState(interpolate_num - 1)
                 for n in range(INTERPOLATE_NUM - interpolate_num):
                     sol_path_geometric.append(last_state)
@@ -492,7 +493,7 @@ class PbOMPL():
         start = self.robot.get_cur_state()
         return self.plan_start_goal(start, goal, allowed_time=allowed_time)
 
-    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[]):
+    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam=""):
         '''
         Execute a planned plan. Will visualize in pybullet.
         Args:
@@ -511,7 +512,8 @@ class PbOMPL():
                                        lineColorRGB=colors[i % len(colors)], lineWidth=5)
         p.removeBody(self.robot_id)
         paths_ = np.moveaxis(paths, 0, 1)
-        stepParam = p.addUserDebugParameter('Step', 0, len(paths_) - 1, 0)
+        if stepParam == "":
+            stepParam = p.addUserDebugParameter('Step', 0, len(paths_) - 1, 0)
         print("Executing paths for " + str(len(robots)) + " robots.")
         text_ids = [None] * len(robots)
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
@@ -526,7 +528,7 @@ class PbOMPL():
                             # if drawPaths:
                             #     p.addUserDebugPoints(pointPositions=[[paths_[int(p.readUserDebugParameter(stepParam))][i][0], paths_[int(p.readUserDebugParameter(stepParam))][i][1], 0]],
                             #                          pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
-                            if i == 0:
+                            if i == 0 and camera:
                                 position = p.getLinkState(robot.id, linkid)[4]  # 0/4
                                 r_mat = p.getMatrixFromQuaternion(p.getLinkState(robot.id, linkid)[5])
                                 r = np.reshape(r_mat, (-1, 3))
@@ -563,8 +565,7 @@ class PbOMPL():
                     if text_ids[i] != None:
                         p.removeUserDebugItem(text_ids[i])
                     text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
-                    # if camera: TODO not all robots should have a camera
-                    if i == 0:
+                    if i == 0 and camera:
                         # shape = p.getVisualShapeData(self.robot.id)
                         # p.getAxisAngleFromQuaternion(self.robot.id)
                         # p.getEulerFromQuaternion(self.robot.id)
@@ -597,7 +598,7 @@ class PbOMPL():
                         p.removeUserDebugItem(camera_line_id)
                         camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
             p.stepSimulation()
-            # time.sleep(0.01)
+        return stepParam
 
     def execute_one_after_another(self, paths, drawPaths, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]]):
         '''
