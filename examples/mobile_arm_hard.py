@@ -154,10 +154,13 @@ class BoxDemo():
             p.removeBody(obstacle)
 
     def add_obstacles(self):
-        self.add_box([-0.5, 1, 1], [0.5, 0.1, 1], [0.2, 0.2, 0.2, 1.])
-        self.add_box([-1, 0.5, 1], [0.1, 0.5, 1], [0.2, 0.2, 0.2, 1.])
-        # self.add_box([0, 2, 0.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        # self.add_box([0, 2, 2.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([-1, 1, 1], [0.5, 0.1, 1], [0.2, 0.2, 0.2, 1.])
+        self.add_box([-1.5, 0.5, 1], [0.1, 0.5, 1], [0.2, 0.2, 0.2, 1.])
+
+        self.add_box([1, 1, 1], [0.5, 0.1, 1], [0.2, 0.2, 0.2, 1.])
+        self.add_box([1.5, 0.5, 1], [0.1, 0.5, 1], [0.2, 0.2, 0.2, 1.])
+
+        self.add_box([0, -1.5, 1], [1.5, 0.1, 1], [0.2, 0.2, 0.2, 1.])
 
         # add targets
         self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
@@ -172,8 +175,6 @@ class BoxDemo():
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
-
-        time.sleep(100)
 
 
     def add_box(self, box_pos, half_box_size, color):
@@ -229,7 +230,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    time.sleep(10)
+    # time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")
