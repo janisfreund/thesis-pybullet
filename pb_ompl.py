@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 60.0
+DEFAULT_PLANNING_TIME = 120.0
 
 class PbOMPLRobot():
     '''

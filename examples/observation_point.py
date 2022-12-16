@@ -123,47 +123,50 @@ class BoxDemo():
         goal2.append(0)
         self.goal_states.append(goal2)
 
-        goal3 = pb_ompl.ou.vectorDouble()
-        goal3.append(-3.042)
-        goal3.append(-3.142)
-        goal3.append(-1.587)
-        goal3.append(0)
-        goal3.append(0.595)
-        goal3.append(0)
-        goal3.append(0)
-        goal3.append(0)
-        goal3.append(1.422)
-        goal3.append(0)
-        self.goal_states.append(goal3)
-
-        goal4 = pb_ompl.ou.vectorDouble()
-        goal4.append(3.009)
-        goal4.append(-3.142)
-        goal4.append(-1.587)
-        goal4.append(0)
-        goal4.append(0.595)
-        goal4.append(0)
-        goal4.append(0)
-        goal4.append(0)
-        goal4.append(1.422)
-        goal4.append(0)
-        self.goal_states.append(goal4)
+        # goal3 = pb_ompl.ou.vectorDouble()
+        # goal3.append(-3.042)
+        # goal3.append(-3.142)
+        # goal3.append(-1.587)
+        # goal3.append(0)
+        # goal3.append(0.595)
+        # goal3.append(0)
+        # goal3.append(0)
+        # goal3.append(0)
+        # goal3.append(1.422)
+        # goal3.append(0)
+        # self.goal_states.append(goal3)
+        #
+        # goal4 = pb_ompl.ou.vectorDouble()
+        # goal4.append(3.009)
+        # goal4.append(-3.142)
+        # goal4.append(-1.587)
+        # goal4.append(0)
+        # goal4.append(0.595)
+        # goal4.append(0)
+        # goal4.append(0)
+        # goal4.append(0)
+        # goal4.append(1.422)
+        # goal4.append(0)
+        # self.goal_states.append(goal4)
 
     def clear_obstacles(self):
         for obstacle in self.obstacles:
             p.removeBody(obstacle)
 
     def add_obstacles(self):
-        self.add_box([-3, 2, 1], [2.5, 0.1, 2], [0.2, 0.2, 0.2, 1.])
-        self.add_box([3, 2, 1], [2.5, 0.1, 2], [0.2, 0.2, 0.2, 1.])
-        self.add_box([0, 2, 0.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        self.add_box([0, 2, 2.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([-2.2, 0.5, 1], [1.7, 0.1, 2], [0.2, 0.2, 0.2, 1.])
+        self.add_box([2.2, 0.5, 1], [1.7, 0.1, 2], [0.2, 0.2, 0.2, 1.])
+        self.add_box([0, 0.5, 0.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([0, 0.5, 2.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([-3.5, 0.5, 2.5], [1.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([3.5, 0.5, 2.5], [1.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([0, 4, 0.5], [0.1, 3.5, 0.5], [0.2, 0.2, 0.2, 1.])
 
         # add targets
         self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
-        self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
-        self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
+        # self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
+        # self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
 
         # add mesh environment
         # wh_info = p.getJointInfo(self.warehouse)
@@ -193,10 +196,10 @@ class BoxDemo():
         return box_id
 
     def demo(self):
-        # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
-        # goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
-        start = [0, 0, 0, 0, 0]
-        goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
+        start = [0, -3, 0, 0, 0, 0, 0, 0, 1.6, 0]
+        goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
+        # start = [0, 0, 0, 0, 0]
+        # goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
 
         #visualize start and goal pose
         p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
