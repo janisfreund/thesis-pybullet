@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 120.0
+DEFAULT_PLANNING_TIME = 60.0
 
 class PbOMPLRobot():
     '''
@@ -159,7 +159,11 @@ class PbOMPL():
 
         self.ss = og.SimpleSetup(self.space)
 
-        self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found))
+        self.si = self.ss.getSpaceInformation()
+
+        self.si.initWorld(len(self.poobjects), True)
+
+        self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
         self.si = self.ss.getSpaceInformation()
         # self.si.setStateValidityCheckingResolution(0.005)
@@ -180,8 +184,6 @@ class PbOMPL():
 
         # update collision detection
         self.setup_collision_detection(self.robot, self.obstacles)
-
-        self.si.initWorld(len(self.poobjects), True)
 
     def add_obstacles(self, obstacle_id):
         self.obstacles.append(obstacle_id)
@@ -492,6 +494,18 @@ class PbOMPL():
         '''
         start = self.robot.get_cur_state()
         return self.plan_start_goal(start, goal, allowed_time=allowed_time)
+
+    def plan_with_simplification(self, goal):
+        start = self.robot.get_cur_state()
+        res, all_sol_path_lists, _ = self.plan_start_goal(start, goal, DEFAULT_PLANNING_TIME)
+
+        print("Now planing with simplification")
+        time.sleep(10)
+        self.set_planner("Partial")
+        self.planner.setPathOptimization(True)
+        _, all_sol_path_lists_optimized, _ = self.plan_start_goal(start, goal, DEFAULT_PLANNING_TIME)
+
+        return res, all_sol_path_lists, all_sol_path_lists_optimized
 
     def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam=""):
         '''

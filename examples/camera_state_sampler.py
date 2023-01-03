@@ -25,6 +25,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         self.si = si
         self.name_ = "Camera State Sampler"
         self.rng_ = ou.RNG()
+        self.rng_.setSeed(0)
+        self.rng_.setLocalSeed(0)
         self.base_offset = base_offset
         self.camera_link_id = camera_link_id
         self.robot = robot
