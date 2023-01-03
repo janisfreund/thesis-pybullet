@@ -149,7 +149,7 @@ class PbOMPL():
         for i, bound in enumerate(joint_bounds):
             # TODO hardcoded for debugging
             if i == 0 or i == 1:
-                bounds.setLow(i, -3.5)
+                bounds.setLow(i, -5.5)
                 bounds.setHigh(i, 3.5)
             else:
                 bounds.setLow(i, bound[0])

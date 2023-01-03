@@ -74,16 +74,19 @@ class BoxDemo():
 
         # time.sleep(10)
 
+        # add obstacles
+        self.add_obstacles()
+
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states)
 
+        # store obstacles
+        self.pb_ompl_interface.set_obstacles(self.obstacles)
+
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
-
-        # add obstacles
-        self.add_obstacles()
 
         self.define_goal_states()
 
@@ -164,9 +167,6 @@ class BoxDemo():
         # wh_info = p.getJointInfo(self.warehouse)
         # print('Warehouse:')
         # print(wh_info)
-
-        # store obstacles
-        self.pb_ompl_interface.set_obstacles(self.obstacles)
 
 
     def add_box(self, box_pos, half_box_size):
