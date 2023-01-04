@@ -81,10 +81,10 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add targets
-        self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1.,0., 0., 1.])
-        self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
-        self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
-        self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        self.add_door([1., 1.9, 1.1], [0.05, 0.05, 0.05], [1.,0., 0., 1.])
+        self.add_door([-1., 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        # self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        # self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)

@@ -281,7 +281,10 @@ class PbOMPL():
             visible_objects.append(2)
         elif cv2.countNonZero(target_mask_black) > 0:
             visible_objects.append(3)
+        else:
+            return visible_objects
 
+        cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
         return visible_objects
 
     def update_poobjects(self):

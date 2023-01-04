@@ -101,7 +101,7 @@ class BoxDemo():
 
     def define_goal_states(self):
         goal1 = pb_ompl.ou.vectorDouble()
-        goal1.append(2.844)
+        goal1.append(0.844)
         goal1.append(1.124)
         goal1.append(1.455)
         goal1.append(0)
@@ -114,7 +114,7 @@ class BoxDemo():
         self.goal_states.append(goal1)
 
         goal2 = pb_ompl.ou.vectorDouble()
-        goal2.append(-3.042)
+        goal2.append(-1.042)
         goal2.append(1.124)
         goal2.append(1.455)
         goal2.append(0)
@@ -157,17 +157,17 @@ class BoxDemo():
             p.removeBody(obstacle)
 
     def add_obstacles(self):
-        self.add_box([-2.2, -1.5, 1], [1.7, 0.1, 2], [0.2, 0.2, 0.2, 1.])
-        self.add_box([2.2, -1.5, 1], [1.7, 0.1, 2], [0.2, 0.2, 0.2, 1.])
-        self.add_box([0, -1.5, 0.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        self.add_box([0, -1.5, 2.5], [0.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        self.add_box([-3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        self.add_box([3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.2, 0.2, 0.2, 1.])
-        self.add_box([0, 4, 0.5], [0.1, 5.5, 0.5], [0.2, 0.2, 0.2, 1.])
+        self.add_box([-2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [1., 1., 1., 1.])
+        self.add_box([2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [1., 1., 1., 1.])
+        self.add_box([0, -1.5, 0.5], [0.5, 0.1, 0.5], [1., 1., 1., 1.])
+        self.add_box([0, -1.5, 2.5], [0.5, 0.1, 0.5], [1., 1., 1., 1.])
+        self.add_box([-3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [1., 1., 1., 1.])
+        self.add_box([3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [1., 1., 1., 1.])
+        self.add_box([0, 4, 0.5], [0.1, 5.5, 0.5], [1., 1., 1., 1.])
 
         # add targets
-        self.add_door([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
-        self.add_door([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
+        self.add_door([1, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        self.add_door([-1, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
         # self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
         # self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
 
@@ -230,7 +230,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    # time.sleep(10)
+    time.sleep(1)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")
