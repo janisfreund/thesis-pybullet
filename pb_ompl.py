@@ -234,6 +234,9 @@ class PbOMPL():
         visible_objects = ou.vectorInt()
 
         # setting the state seems not to be necessary
+        # q = []
+        # for i in range(self.robot.num_dim):
+        #     q.append(state[i])
         # self.robot.set_state(q)
 
         projectionMatrix = p.computeProjectionMatrixFOV(
@@ -284,7 +287,7 @@ class PbOMPL():
         else:
             return visible_objects
 
-        cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
+        # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
         return visible_objects
 
     def update_poobjects(self):
@@ -476,6 +479,24 @@ class PbOMPL():
         self.robot.set_state(orig_robot_state)
         return res, all_sol_path_lists, self.tree_path_lists
 
+    def set_start_goal(self, start, goal):#DEFAULT_PLANNING_TIME
+        '''
+        plan a path to gaol from the given robot start state
+        '''
+        print(self.planner.params())
+
+        orig_robot_state = self.robot.get_cur_state()
+
+        # set the start and goal states;
+        s = ob.State(self.space)
+        g = ob.State(self.space)
+        for i in range(len(start)):
+            s[i] = start[i]
+            g[i] = goal[i]
+
+        self.ss.setStartAndGoalStates(s, g)
+        for goal in self.goal_states:
+            self.ss.addGoalState(goal)
 
     def calc_path_len(self, path):
         '''
