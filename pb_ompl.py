@@ -170,7 +170,7 @@ class PbOMPL():
             self.space = PbCarSpace(robot.num_dim)
 
             bounds = ob.RealVectorBounds(2)
-            bounds.setLow(-6)
+            bounds.setLow(-2)
             bounds.setHigh(6)
         else:
             self.space = PbStateSpace(robot.num_dim)
@@ -192,8 +192,10 @@ class PbOMPL():
 
         self.si = self.ss.getSpaceInformation()
 
-        self.si.initWorld(len(self.poobjects), True)
-        # self.si.initWorld(len(self.poobjects), False)
+        if (space == "car"):
+            self.si.initWorld(len(self.poobjects), False)
+        else:
+            self.si.initWorld(len(self.poobjects), True)
 
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
