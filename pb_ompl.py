@@ -393,8 +393,11 @@ class PbOMPL():
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
-        moving_links = frozenset(
-            [item for item in utils.get_moving_links(robot.id, robot.joint_idx) if not item in allow_collision_links])
+        if len(utils.get_moving_links(robot.id, robot.joint_idx)) == 0:
+            moving_links = frozenset([0])
+        else:
+            moving_links = frozenset(
+                [item for item in utils.get_moving_links(robot.id, robot.joint_idx) if not item in allow_collision_links])
         self.moving_bodies = [(robot.id, moving_links)]
         self.check_body_pairs = list(product(self.moving_bodies, obstacles))
 
