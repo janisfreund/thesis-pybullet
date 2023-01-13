@@ -5,3 +5,5 @@ examples/camera/
 *.blend
 *.blend1
 *.png
+
+*.console

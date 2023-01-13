@@ -80,7 +80,7 @@ class BoxDemo():
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states)
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states, "real")
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)

@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 60.0
+DEFAULT_PLANNING_TIME = 20.0
 
 class PbOMPLRobot():
     '''
@@ -122,8 +122,31 @@ class PbStateSpace(ob.RealVectorStateSpace):
         '''
         self.state_sampler = state_sampler
 
+class PbCarSpace(ob.ReedsSheppStateSpace):
+    def __init__(self, num_dim) -> None:
+        super().__init__(num_dim)
+        self.num_dim = num_dim
+        self.state_sampler = None
+
+    def allocStateSampler(self):
+        '''
+        This will be called by the internal OMPL planner
+        '''
+        # WARN: This will cause problems if the underlying planner is multi-threaded!!!
+        if self.state_sampler:
+            return self.state_sampler
+
+        # when ompl planner calls this, we will return our sampler
+        return self.allocDefaultStateSampler()
+
+    def set_state_sampler(self, state_sampler):
+        '''
+        Optional, Set custom state sampler.
+        '''
+        self.state_sampler = state_sampler
+
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = []) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real") -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -142,18 +165,26 @@ class PbOMPL():
         for f in os.listdir('./camera'):
             os.remove(os.path.join('./camera', f))
 
-        self.space = PbStateSpace(robot.num_dim)
+        self.space_name = space
+        if space == "car":
+            self.space = PbCarSpace(robot.num_dim)
 
-        bounds = ob.RealVectorBounds(robot.num_dim)
-        joint_bounds = self.robot.get_joint_bounds()
-        for i, bound in enumerate(joint_bounds):
-            # TODO hardcoded for debugging
-            if i == 0 or i == 1:
-                bounds.setLow(i, -5.5)
-                bounds.setHigh(i, 3.5)
-            else:
-                bounds.setLow(i, bound[0])
-                bounds.setHigh(i, bound[1])
+            bounds = ob.RealVectorBounds(2)
+            bounds.setLow(-6)
+            bounds.setHigh(6)
+        else:
+            self.space = PbStateSpace(robot.num_dim)
+
+            bounds = ob.RealVectorBounds(robot.num_dim)
+            joint_bounds = self.robot.get_joint_bounds()
+            for i, bound in enumerate(joint_bounds):
+                # TODO hardcoded for debugging
+                if i == 0 or i == 1:
+                    bounds.setLow(i, -5.5)
+                    bounds.setHigh(i, 3.5)
+                else:
+                    bounds.setLow(i, bound[0])
+                    bounds.setHigh(i, bound[1])
 
         self.space.setBounds(bounds)
 
@@ -162,6 +193,7 @@ class PbOMPL():
         self.si = self.ss.getSpaceInformation()
 
         self.si.initWorld(len(self.poobjects), True)
+        # self.si.initWorld(len(self.poobjects), False)
 
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
@@ -261,7 +293,8 @@ class PbOMPL():
             width=224,
             height=224,
             viewMatrix=viewMatrix,
-            projectionMatrix=projectionMatrix)
+            projectionMatrix=projectionMatrix,
+            renderer=p.ER_BULLET_HARDWARE_OPENGL)
 
         # expect target to be green and only green object in scene
         target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
@@ -828,4 +861,10 @@ class PbOMPL():
     # ------------
 
     def state_to_list(self, state):
-        return [state[i] for i in range(self.robot.num_dim)]
+        if self.space_name == "car":
+            x = state.getX()
+            y = state.getY()
+            theta = state.getYaw()
+            return [x, y, theta]
+        else:
+            return [state[i] for i in range(self.robot.num_dim)]
