@@ -173,18 +173,18 @@ class BoxDemo():
         # self.goal_robot.set_state(goal)
         res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
         if res:
-            robots = []
-            for _ in paths:
-                rid = p.loadURDF("../models/car/car.urdf", (0, 0, 0), globalScaling=2)
-                r = MyCar(rid)
-                robots.append(r)
+            # robots = []
+            # for _ in paths:
+            #     rid = p.loadURDF("../models/car/car.urdf", (0, 0, 0), globalScaling=2)
+            #     r = MyCar(rid)
+            #     robots.append(r)
             drawPath = True
             stepParam = ""
             while True:
-                stepParam = self.pb_ompl_interface.execute_all(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
-                                                   linkid=0, camera_orientation=[[1], [0], [0]], robots=robots, stepParam=stepParam)
-                # self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
-                #                                    linkid=19, camera_orientation=[[0], [0], [1]])
+                # stepParam = self.pb_ompl_interface.execute_all(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
+                #                                    linkid=0, camera_orientation=[[1], [0], [0]], robots=robots, stepParam=stepParam)
+                self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
+                                                   linkid=19, camera_orientation=[[0], [0], [1]])
                 drawPath = False
             return res, paths
 
@@ -241,7 +241,7 @@ class BoxDemo():
 
 if __name__ == '__main__':
     faulthandler.enable()
-    time.sleep(10)
+    # time.sleep(10)
     env = BoxDemo()
     # env.test()
     env.demo()

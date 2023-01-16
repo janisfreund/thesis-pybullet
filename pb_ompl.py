@@ -342,6 +342,13 @@ class PbOMPL():
                 except:
                     pass
 
+    def update_poobjects_probability(self, p_world):
+        for i, pro in enumerate(self.poobjects_properties):
+            # TODO why +2 to index
+            old_color = p.getVisualShapeData(pro[0] + 2)[0][7]
+            new_color = list(old_color)
+            new_color[3] = p_world[i]
+            p.changeVisualShape(pro[0] + 2, -1, rgbaColor=new_color)
 
     def sample_good_camera_position(self, obj_pos, base_pos, base_offset, camera_link_id):
         # position is directly above base + offset in z direction
@@ -697,9 +704,12 @@ class PbOMPL():
         for i in range(len(paths)):
             params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
+        p_worlds = self.ss.getProblemDefinition().getPWorlds()
         while True:
             for n, path in enumerate(paths):
                 print("Executing path " + str(n))
+                self.update_poobjects_probability(p_worlds[n])
+                print("Current world: " + self.vector_to_string(p_worlds[n]))
                 for q in path:
                     oldParam = [0] * len(paths)
 
@@ -764,7 +774,7 @@ class PbOMPL():
                             p.removeUserDebugItem(camera_line_id)
                             camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
                     p.stepSimulation()
-                    time.sleep(0.01)
+                    time.sleep(0.05)
 
     def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0,
                 camera_orientation=[[1], [0], [0]]):
@@ -873,3 +883,11 @@ class PbOMPL():
             return [x, y, theta]
         else:
             return [state[i] for i in range(self.robot.num_dim)]
+
+    def vector_to_string(self, vec):
+        s = "["
+        for v in vec:
+            s += str(v)
+            s += ", "
+        s += "]"
+        return s
