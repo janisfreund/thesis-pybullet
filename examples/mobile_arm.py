@@ -32,6 +32,8 @@ class BoxDemo():
         self.warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
         p.loadURDF("plane.urdf", useFixedBase=True)
         print("Warehouse imported.")
+        # doesnt work
+        # self.obstacles.append(self.warehouse)
 
         # load robot
         if False:
@@ -193,8 +195,8 @@ class BoxDemo():
         goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
 
         #visualize start and goal pose
-        p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
-        p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
+        # p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
+        # p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
 
         self.robot.set_state(start)
 
@@ -211,12 +213,15 @@ class BoxDemo():
                 robots.append(r)
             drawPath = True
             stepParam = ""
+            raw_path_param = ""
+            sol_line_ids = []
+            line_id = []
             while True:
-                stepParam = self.pb_ompl_interface.execute_all(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
-                                                   linkid=19, camera_orientation=[[0], [0], [1]], robots=robots, stepParam=stepParam)
+                stepParam, raw_path_param, sol_line_ids, line_id = self.pb_ompl_interface.execute_all(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
+                                                   linkid=19, camera_orientation=[[0], [0], [1]], robots=robots, stepParam=stepParam, raw_path_param=raw_path_param,
+                                                   sol_line_ids=sol_line_ids, line_id=line_id)
                 # self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
                 #                                    linkid=19, camera_orientation=[[0], [0], [1]])
-                drawPath = False
             return res, paths
 
 

@@ -576,7 +576,7 @@ class PbOMPL():
 
         return res, all_sol_path_lists, all_sol_path_lists_optimized
 
-    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam=""):
+    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam="", raw_path_param="", sol_line_ids=[], line_id=[]):
         '''
         Execute a planned plan. Will visualize in pybullet.
         Args:
@@ -587,23 +587,129 @@ class PbOMPL():
         '''
         colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
         # draw path
-        if drawPaths:
+        if drawPaths and stepParam == "":
             for i in range(self.ss.getProblemDefinition().getSolutionCount()):
                 for n in range(len(self.tree_path_lists[i]) - 1):
-                    p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                    sol_line_ids.append(p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
                                        [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
-                                       lineColorRGB=colors[i % len(colors)], lineWidth=5)
+                                       lineColorRGB=colors[i % len(colors)], lineWidth=5))
+        po_colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0]]
+        for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
+            observations = []
+            for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:
+                observations.append(observation)
+            s = self.state_to_list(state)
+            p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=50)
         p.removeBody(self.robot_id)
         paths_ = np.moveaxis(paths, 0, 1)
         if stepParam == "":
             stepParam = p.addUserDebugParameter('Step', 0, len(paths_) - 1, 0)
+        if raw_path_param == "":
+            raw_path_param = p.addUserDebugParameter('PathRaw', -1, len(self.tree_path_lists) - 1, -1)
+            line = -1
+        else:
+            line = int(p.readUserDebugParameter(raw_path_param))
         print("Executing paths for " + str(len(robots)) + " robots.")
         text_ids = [None] * len(robots)
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
         for q in paths_:
+            if int(p.readUserDebugParameter(raw_path_param)) != line:
+                line = int(p.readUserDebugParameter(raw_path_param))
+                if line >= 0:
+                    solution = self.ss.getProblemDefinition().getRawSolutions()[line]
+                    sol_list = [self.state_to_list(state) for state in solution]
+                    for s_id in sol_line_ids:
+                        p.removeUserDebugItem(s_id)
+                    sol_line_ids = []
+                    for l_id in line_id:
+                        p.removeUserDebugItem(l_id)
+                    line_id = []
+                    for n in range(len(solution) - 1):
+                        line_id.append(p.addUserDebugLine([sol_list[n][0], sol_list[n][1], 0],
+                                           [sol_list[n + 1][0], sol_list[n + 1][1], 0],
+                                           lineColorRGB=[0, 0, 0], lineWidth=5))
+                    for n in range(len(self.tree_path_lists[line]) - 1):
+                        isSame = False
+                        for j in range(len(solution) - 1):
+                            if sol_list[j][0] == self.tree_path_lists[line][n][0] and sol_list[j][1] == \
+                                    self.tree_path_lists[line][n][1] and sol_list[j + 1][0] == \
+                                    self.tree_path_lists[line][n + 1][0] and sol_list[j + 1][1] == \
+                                    self.tree_path_lists[line][n + 1][1]:
+                                isSame = True
+                        if isSame:
+                            line_id.append(p.addUserDebugLine(
+                                [self.tree_path_lists[line][n][0], self.tree_path_lists[line][n][1], 0],
+                                [self.tree_path_lists[line][n + 1][0], self.tree_path_lists[line][n + 1][1], 0],
+                                lineColorRGB=[1, 0, 0], lineWidth=5))
+                        else:
+                            line_id.append(p.addUserDebugLine(
+                                [self.tree_path_lists[line][n][0], self.tree_path_lists[line][n][1], 0],
+                                [self.tree_path_lists[line][n + 1][0], self.tree_path_lists[line][n + 1][1], 0],
+                                lineColorRGB=[0, 1, 0], lineWidth=5))
+                else:
+                    for s_id in sol_line_ids:
+                        p.removeUserDebugItem(s_id)
+                    sol_line_ids = []
+                    for l_id in line_id:
+                        p.removeUserDebugItem(l_id)
+                    line_id = []
+                    if drawPaths:
+                        for i in range(self.ss.getProblemDefinition().getSolutionCount()):
+                            for n in range(len(self.tree_path_lists[i]) - 1):
+                                sol_line_ids.append(
+                                    p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                                       [self.tree_path_lists[i][n + 1][0],
+                                                        self.tree_path_lists[i][n + 1][1], 0],
+                                                       lineColorRGB=colors[i % len(colors)], lineWidth=5))
             if int(p.readUserDebugParameter(stepParam)) != 0:
                 oldStep = 0
                 while True:
+                    if int(p.readUserDebugParameter(raw_path_param)) != line:
+                        line = int(p.readUserDebugParameter(raw_path_param))
+                        if line >= 0:
+                            solution = self.ss.getProblemDefinition().getRawSolutions()[line]
+                            sol_list = [self.state_to_list(state) for state in solution]
+                            for s_id in sol_line_ids:
+                                p.removeUserDebugItem(s_id)
+                            sol_line_ids = []
+                            for l_id in line_id:
+                                p.removeUserDebugItem(l_id)
+                            line_id = []
+                            for n in range(len(solution) - 1):
+                                line_id.append(p.addUserDebugLine([sol_list[n][0], sol_list[n][1], 0],
+                                                                  [sol_list[n + 1][0], sol_list[n + 1][1], 0],
+                                                                  lineColorRGB=[0, 0, 0], lineWidth=5))
+                            for n in range(len(self.tree_path_lists[line]) - 1):
+                                isSame = False
+                                for j in range(len(solution) - 1):
+                                    if sol_list[j][0] == self.tree_path_lists[line][n][0] and sol_list[j][1] == self.tree_path_lists[line][n][1] and sol_list[j + 1][0] == self.tree_path_lists[line][n + 1][0] and sol_list[j + 1][1] == self.tree_path_lists[line][n + 1][1]:
+                                        isSame = True
+                                if isSame:
+                                    line_id.append(p.addUserDebugLine(
+                                        [self.tree_path_lists[line][n][0], self.tree_path_lists[line][n][1], 0],
+                                        [self.tree_path_lists[line][n + 1][0], self.tree_path_lists[line][n + 1][1], 0],
+                                        lineColorRGB=[1, 0, 0], lineWidth=5))
+                                else:
+                                    line_id.append(p.addUserDebugLine(
+                                        [self.tree_path_lists[line][n][0], self.tree_path_lists[line][n][1], 0],
+                                        [self.tree_path_lists[line][n + 1][0], self.tree_path_lists[line][n + 1][1], 0],
+                                        lineColorRGB=[0, 1, 0], lineWidth=5))
+                        else:
+                            for s_id in sol_line_ids:
+                                p.removeUserDebugItem(s_id)
+                            sol_line_ids = []
+                            for l_id in line_id:
+                                p.removeUserDebugItem(l_id)
+                            line_id = []
+                            if drawPaths:
+                                for i in range(self.ss.getProblemDefinition().getSolutionCount()):
+                                    for n in range(len(self.tree_path_lists[i]) - 1):
+                                        sol_line_ids.append(
+                                            p.addUserDebugLine(
+                                                [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                                [self.tree_path_lists[i][n + 1][0],
+                                                 self.tree_path_lists[i][n + 1][1], 0],
+                                                lineColorRGB=colors[i % len(colors)], lineWidth=5))
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
                             robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
@@ -681,7 +787,7 @@ class PbOMPL():
                         p.removeUserDebugItem(camera_line_id)
                         camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
             p.stepSimulation()
-        return stepParam
+        return stepParam, raw_path_param, sol_line_ids, line_id
 
     def execute_one_after_another(self, paths, drawPaths, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]]):
         '''

@@ -10,5 +10,10 @@
 				<color rgba="1.00000 1.00000 1.00000 1.00000" />
 			</material>
 		</visual>
+		<collision>
+            <geometry>
+                <mesh filename="../models/warehouse_no_ground/model.dae" scale="1.00000 1.00000 1.00000"/>
+            </geometry>
+        </collision>
     </link>
 </robot>
