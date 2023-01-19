@@ -89,12 +89,12 @@ class BoxDemo():
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
 
-        self.pb_ompl_interface.set_planner("Partial")
+        # self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
 
         self.define_goal_states()
 
-        self.pb_ompl_interface.set_state_sampler_name("camera")
+        # self.pb_ompl_interface.set_state_sampler_name("camera")
 
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
@@ -207,11 +207,12 @@ class BoxDemo():
         # define benchmark
         b = t.Benchmark(self.pb_ompl_interface.ss, "mobile_arm")
         b.addPlanner(pb_ompl.og.Partial(self.pb_ompl_interface.ss.getSpaceInformation()))
+        # b.addPlanner(pb_ompl.og.RRT(self.pb_ompl_interface.ss.getSpaceInformation()))
 
         req = t.Benchmark.Request()
         req.maxTime = 20.0
         req.maxMem = 1000.0
-        req.runCount = 3
+        req.runCount = 100
         req.displayProgress = True
 
         b.benchmark(req)

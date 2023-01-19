@@ -79,6 +79,8 @@ class BoxDemo():
         # add obstacles
         self.add_obstacles()
 
+        self.define_goal_states()
+
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
@@ -89,8 +91,6 @@ class BoxDemo():
 
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
-
-        self.define_goal_states()
 
         self.pb_ompl_interface.set_state_sampler_name("camera")
 

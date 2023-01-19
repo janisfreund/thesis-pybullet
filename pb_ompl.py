@@ -162,6 +162,7 @@ class PbOMPL():
         self.camera_orientation = camera_orientation
         self.goal_states = goal_states
         self.state_counter = 0
+        self.counter = 0
         for f in os.listdir('./camera'):
             os.remove(os.path.join('./camera', f))
 
@@ -192,7 +193,7 @@ class PbOMPL():
 
         self.si = self.ss.getSpaceInformation()
 
-        if (space == "car"):
+        if (space == "car" or len(self.goal_states) == 0):
             self.si.initWorld(len(self.poobjects), False)
         else:
             self.si.initWorld(len(self.poobjects), True)
@@ -226,6 +227,8 @@ class PbOMPL():
         self.obstacles.remove(obstacle_id)
 
     def is_state_valid(self, state, world):
+        self.counter += 1
+
         # set poobjects to state of the world
         # self.update_poobjects()
 
@@ -301,7 +304,7 @@ class PbOMPL():
         # expect target to be green and only green object in scene
         target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
         target_mask_red = cv2.inRange(rgbImg, (1, 0, 0, 0), (255, 50, 50, 255))
-        target_mask_yellow = cv2.inRange(rgbImg, (0, 0, 1, 0), (50, 50, 255, 255))
+        target_mask_blue = cv2.inRange(rgbImg, (0, 0, 1, 0), (50, 50, 255, 255))
         target_mask_black = cv2.inRange(rgbImg, (0, 0, 0, 0), (50, 50, 50, 255))
 
 
@@ -311,16 +314,18 @@ class PbOMPL():
         # cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
         self.state_counter += 1
 
-        if cv2.countNonZero(target_mask_green) > 0:
+        if cv2.countNonZero(target_mask_red) > 0 and len(self.poobjects) > 0:
             visible_objects.append(0)
-        elif cv2.countNonZero(target_mask_red) > 0:
+        elif cv2.countNonZero(target_mask_green) > 0 and len(self.poobjects) > 1:
             visible_objects.append(1)
-        elif cv2.countNonZero(target_mask_yellow) > 0:
+        elif cv2.countNonZero(target_mask_blue) > 0 and len(self.poobjects) > 2:
             visible_objects.append(2)
-        elif cv2.countNonZero(target_mask_black) > 0:
+        elif cv2.countNonZero(target_mask_black) > 0 and len(self.poobjects) > 3:
             visible_objects.append(3)
-        else:
-            return visible_objects
+
+        # camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
+        # time.sleep(5)
+        # p.removeUserDebugItem(camera_line_id)
 
         # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
         return visible_objects
@@ -586,6 +591,7 @@ class PbOMPL():
                       path is collision free, this is somewhat acceptable.
         '''
         colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        po_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
         # draw path
         if drawPaths and stepParam == "":
             for i in range(self.ss.getProblemDefinition().getSolutionCount()):
@@ -593,13 +599,19 @@ class PbOMPL():
                     sol_line_ids.append(p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
                                        [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
                                        lineColorRGB=colors[i % len(colors)], lineWidth=5))
-        po_colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0]]
+        already_added = dict()
         for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
             observations = []
             for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:
                 observations.append(observation)
             s = self.state_to_list(state)
-            p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=50)
+            key_state = str(s[0]) + "," + str(s[1])
+            if not (key_state in already_added):
+                p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=20)
+                already_added[key_state] = 1
+            else:
+                p.addUserDebugPoints([[s[0] + (0.025 * already_added[key_state]), s[1], 0]], [po_colors[observations[0]]], pointSize=20)
+                already_added[key_state] += 1
         p.removeBody(self.robot_id)
         paths_ = np.moveaxis(paths, 0, 1)
         if stepParam == "":

@@ -5,11 +5,18 @@ import pybullet as p
 import math
 import sys
 import pybullet_data
+from pybullet_utils import bullet_client as bc
+from pybullet_utils import urdfEditor as ed
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
 from my_planar_robot import MyPlanarRobot
+from my_planar_robot import MyMobileArm
+
+from ompl import tools as t
+
+import faulthandler
 
 
 class BoxDemo():
@@ -41,7 +48,7 @@ class BoxDemo():
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
 
-        self.pb_ompl_interface.set_planner("Partial")
+        # self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
 
         # TODO use camera state sampler
@@ -53,6 +60,19 @@ class BoxDemo():
             aspect=1.0,
             nearVal=0.1,
             farVal=8)
+
+        start = [-1.5, 1.5, math.radians(90)]
+        goal = [1.5, 1.5, math.radians(0)]
+
+        # visualize start and goal pose
+        p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0, 1, 1]], pointSize=15,
+                             lifeTime=0)
+        p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15,
+                             lifeTime=0)
+
+        self.robot.set_state(start)
+
+        self.pb_ompl_interface.set_start_goal(start, goal)
 
     def clear_obstacles(self):
         for obstacle in self.obstacles:
@@ -86,61 +106,27 @@ class BoxDemo():
         self.poobjects.append(box_id)
         return box_id
 
-    def demo(self):
-        start = [-1.5, 1.5, math.radians(90)]
-        goal = [1.5, 1.5, math.radians(0)]
+    def benchmark(self):
+        # define benchmark
+        b = t.Benchmark(self.pb_ompl_interface.ss, "roomba")
+        b.addPlanner(pb_ompl.og.Partial(self.pb_ompl_interface.ss.getSpaceInformation()))
+        # b.addPlanner(pb_ompl.og.RRT(self.pb_ompl_interface.ss.getSpaceInformation()))
 
-        #visualize start and goal pose
-        p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
-        p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
+        req = t.Benchmark.Request()
+        req.maxTime = 20.0
+        req.maxMem = 1000.0
+        req.runCount = 100
+        req.displayProgress = True
 
-        self.robot.set_state(start)
-        # self.start_robot.set_state(start)
-        # self.goal_robot.set_state(goal)
-        res, paths, paths_tree = self.pb_ompl_interface.plan(goal)
+        b.benchmark(req)
 
-        # for robot in robots:
-        #     robot.set_state(start)
-
-        # print tree
-        # if res:
-        #     self.pb_ompl_interface.print_tree(paths_tree, 100, False)
-        #     return res, paths
-
-        # execute paths in parallel
-        if res:
-            robots = []
-            for _ in paths:
-                rid = p.loadURDF("../models/create_description_no_collision/urdf/create_2.urdf", (-1.5, 1.5, 0))
-                r = MyPlanarRobot(rid)
-                robots.append(r)
-            drawPath = True
-            stepParam = ""
-            raw_path_param = ""
-            sol_line_ids = []
-            line_id = []
-            while True:
-                stepParam, raw_path_param, sol_line_ids, line_id = self.pb_ompl_interface.execute_all(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
-                                                   linkid=19, camera_orientation=[[0], [0], [1]], robots=robots, stepParam=stepParam, raw_path_param=raw_path_param,
-                                                   sol_line_ids=sol_line_ids, line_id=line_id)
-                # self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
-                #                                    linkid=19, camera_orientation=[[0], [0], [1]])
-            return res, paths
-
-
-        # execute paths one after another
-        # if res:
-        #     idx = 0
-        #     while True:
-        #         path_idx = idx % len(paths)
-        #         print("Executing path {}".format(path_idx))
-        #         self.pb_ompl_interface.execute(paths[path_idx], camera=True, projectionMatrix=self.projectionMatrix, linkid=10, camera_orientation=[[1], [0], [0]])
-        #         idx += 1
-        # return res, paths
+        b.saveResultsToFile()
 
 
 if __name__ == '__main__':
-    time.sleep(10)
+    faulthandler.enable()
+    # time.sleep(10)
     env = BoxDemo()
-    env.demo()
+    sys.setrecursionlimit(10000)
+    env.benchmark()
     input("Press Enter to continue...")

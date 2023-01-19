@@ -102,8 +102,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         # p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
         # p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
         # p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
-
-        # time.sleep(1)
+        #
+        # time.sleep(2.5)
 
         return True
 
@@ -113,6 +113,7 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         world = self.si.getWorld()
         obj_pos = self.poobjects_pos[world.getStateIdx(world.getStateInt())]
         position = [0, 0, self.base_offset]
+        final_position = [base_pos[0], base_pos[1], self.base_offset]
         target = obj_pos.copy()
         target[0] = obj_pos[0] - base_pos[0]
         target[1] = obj_pos[1] - base_pos[1]
@@ -140,6 +141,32 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             state[3 + i] = joint_pos
 
         print("Sampled camera pos.")
+
+        # debugging
+        # debugState = []
+        # debugState.append(base_pos[0])
+        # debugState.append(base_pos[1])
+        # debugState.append(0)
+        # for i, joint_pos in enumerate(inv):
+        #     debugState.append(joint_pos)
+        #
+        # self.robot.set_state(debugState)
+        #
+        # position_cam = p.getLinkState(self.robot.id, self.camera_link_id)[4]
+        # r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link_id)[5])
+        # r = np.reshape(r_mat, (-1, 3))
+        # orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
+        # debug_target = [x + y for x, y in zip(position_cam, orientation)]
+        #
+        # debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
+        # debug_point = [x + y for x, y in zip(final_position, debug_orientation)]
+        #
+        # p.removeAllUserDebugItems()
+        # p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
+        # p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
+        # p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
+        #
+        # time.sleep(2.5)
 
         # time.sleep(10)
 
