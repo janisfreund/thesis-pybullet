@@ -122,7 +122,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="left_wheel_joint" type="continuous">
+  <joint name="left_wheel_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 0.1175 0.015"/>
     <parent link="base_link"/>
     <child link="left_wheel_link"/>
@@ -147,7 +147,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="right_wheel_joint" type="continuous">
+  <joint name="right_wheel_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 -0.1175 0.015"/>
     <parent link="base_link"/>
     <child link="right_wheel_link"/>
@@ -227,8 +227,8 @@
       </geometry>
     </visual>
   </link>
-  <joint name="camera_joint" type="fixed">
-    <axis xyz="1 0 0"/>
+  <joint name="camera_joint" type="continuous">
+    <axis xyz="0 0 1"/>
     <origin rpy="0 0 0" xyz="0.15 0 0.08"/>
     <parent link="base_link"/>
     <child link="camera_link"/>

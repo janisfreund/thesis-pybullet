@@ -29,10 +29,11 @@
         </collision>
     </link>
 
-    <joint name="base_to_camera" type="fixed">
+    <joint name="base_to_camera" type="continuous">
         <parent link="base"/>
         <child link="camera"/>
         <origin xyz="0.25 0 0.1"/>
+        <axis xyz="0 0 1"/>
     </joint>
 
 </robot>

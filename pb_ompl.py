@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 20.0
+DEFAULT_PLANNING_TIME = 30.0
 
 class PbOMPLRobot():
     '''
@@ -157,7 +157,7 @@ class PbOMPL():
         self.obstacles = obstacles
         self.poobjects = poobjects
         self.poobjects_properties = poobjects_properties
-        print(self.obstacles)
+        # print(self.obstacles)
         self.camera_link = camera_link
         self.camera_orientation = camera_orientation
         self.goal_states = goal_states
@@ -257,8 +257,10 @@ class PbOMPL():
         po_pairs = list(product(self.moving_bodies, existing_objects))
         for body1, body2 in po_pairs:
             if utils.pairwise_collision(body1, body2):
+                print("Robot collides with poobject!")
                 return False
 
+        # print("State is valid!")
         return True
 
     # process camera image
@@ -445,9 +447,10 @@ class PbOMPL():
 
     def set_state_sampler_name(self, sampler_name):
         if sampler_name == "camera":
+            multiple_objects = (self.space_name == "car" or len(self.goal_states) == 0)
             _, _, zstate = p.getLinkState(self.robot.id, self.camera_link)[4]
             camera_sampler = CameraStateSampler(self.si, zstate, self.camera_link, self.robot,
-                                                [prop[2] for prop in self.poobjects_properties])
+                                                [prop[2] for prop in self.poobjects_properties], multiple_objects, self.space_name)
             self.set_state_sampler(camera_sampler)
 
     def plan_start_goal(self, start, goal, allowed_time = DEFAULT_PLANNING_TIME):#DEFAULT_PLANNING_TIME

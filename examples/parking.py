@@ -38,6 +38,7 @@ class BoxDemo():
 
         # colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.5, 0.3, 0.2])
         # robot_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=colBoxId, basePosition=[0, 0, 0])
+
         robot_id = p.loadURDF("../models/car/car.urdf", globalScaling=2)
         # robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", globalScaling=2)
 
@@ -55,6 +56,8 @@ class BoxDemo():
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 0, [[1], [0], [0]], self.goal_states, "car")
+        # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties,
+        #                                         10, [[1], [0], [0]], self.goal_states, "car")
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)

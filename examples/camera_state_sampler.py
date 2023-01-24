@@ -1,3 +1,5 @@
+import math
+
 try:
     from ompl import util as ou
     from ompl import base as ob
@@ -20,7 +22,7 @@ from scipy.spatial.transform import Rotation as R
 import time
 
 class CameraStateSampler(ob.RealVectorStateSampler):
-    def __init__(self, si, base_offset, camera_link_id, robot, poobjects_pos):
+    def __init__(self, si, base_offset, camera_link_id, robot, poobjects_pos, multiple_objects, space):
         super().__init__(si.getStateSpace())
         self.si = si
         self.name_ = "Camera State Sampler"
@@ -32,6 +34,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         self.robot = robot
         self.robot_id = robot.id
         self.poobjects_pos = poobjects_pos
+        self.multiple_objects = multiple_objects
+        self.space = space
 
 
     def sampleGoodCameraPosition(self, state):
@@ -43,10 +47,25 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         # if random_num < 0.5:
         #     super().sampleUniform(state)
         # else:
+
+        world = self.si.getWorld()
+        if self.multiple_objects:
+            # sample 1 poobject randomly
+            existing_objects = []
+            for i, obj in enumerate(world.getStateInt()):
+                if obj == 1:
+                    existing_objects.append(i)
+            if len(existing_objects) > 0:
+                random_num = self.rng_.uniformInt(0, len(existing_objects) - 1)
+                object_idx = existing_objects[random_num]
+            else:
+                object_idx = 0
+        else:
+            object_idx = world.getStateIdx(world.getStateInt())
+
         bounds = self.robot.get_joint_bounds()
         base_pos = [self.rng_.uniformReal(bounds[0][0], bounds[0][1]), self.rng_.uniformReal(bounds[1][0], bounds[1][1])]
-        world = self.si.getWorld()
-        obj_pos = self.poobjects_pos[world.getStateIdx(world.getStateInt())]
+        obj_pos = self.poobjects_pos[object_idx]
         # position is directly above base + offset in z direction
         # offset = p.getLinkState(self.robot_id, self.camera_link_id)[4][2]
         position = [0, 0, self.base_offset]
@@ -54,6 +73,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         target = obj_pos.copy()
         target[0] = obj_pos[0] - base_pos[0]
         target[1] = obj_pos[1] - base_pos[1]
+        if self.space == "car" or self.multiple_objects == True:
+            target[2] = self.base_offset
         direction = list(map(operator.sub, target, position))
         direction = direction / np.linalg.norm(direction)
         up = [0, 0, 1]
@@ -71,52 +92,87 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         inv = p.calculateInverseKinematics(self.robot.id, self.camera_link_id, position, targetOrientation=quaternion,
                                            maxNumIterations=100)
 
-        state[0] = base_pos[0]
-        state[1] = base_pos[1]
-        state[2] = 0
-        for i, joint_pos in enumerate(inv):
-            state[3 + i] = joint_pos
+        if self.space == "car":
+            state.setX(base_pos[0])
+            state.setY(base_pos[1])
+            state.setYaw(inv[0] - 0.5 * math.pi)
+        elif self.multiple_objects:
+            state[0] = base_pos[0]
+            state[1] = base_pos[1]
+            state[2] = inv[0] - 0.5 * math.pi
+        else:
+            state[0] = base_pos[0]
+            state[1] = base_pos[1]
+            state[2] = 0
+            for i, joint_pos in enumerate(inv):
+                state[3 + i] = joint_pos
 
         print("Sampled camera pos.")
 
         # debugging
-        # debugState = []
-        # debugState.append(base_pos[0])
-        # debugState.append(base_pos[1])
-        # debugState.append(0)
-        # for i, joint_pos in enumerate(inv):
-        #     debugState.append(joint_pos)
-        #
-        # self.robot.set_state(debugState)
-        #
-        # position_cam = p.getLinkState(self.robot.id, self.camera_link_id)[4]
-        # r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link_id)[5])
-        # r = np.reshape(r_mat, (-1, 3))
-        # orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
-        # debug_target = [x + y for x, y in zip(position_cam, orientation)]
-        #
-        # debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
-        # debug_point = [x + y for x, y in zip(final_position, debug_orientation)]
-        #
-        # p.removeAllUserDebugItems()
-        # p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
-        # p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
-        # p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
-        #
-        # time.sleep(2.5)
+        if False:
+            debugState = []
+            if self.space == "car":
+                debugState.append(state.getX())
+                debugState.append(state.getY())
+                debugState.append(state.getYaw())
+            elif self.multiple_objects:
+                debugState.append(state[0])
+                debugState.append(state[1])
+                debugState.append(state[2])
+            else:
+                debugState.append(base_pos[0])
+                debugState.append(base_pos[1])
+                debugState.append(0)
+                for i, joint_pos in enumerate(inv):
+                    debugState.append(joint_pos)
+
+            self.robot.set_state(debugState)
+
+            position_cam = p.getLinkState(self.robot.id, self.camera_link_id)[4]
+            r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link_id)[5])
+            r = np.reshape(r_mat, (-1, 3))
+            orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
+            debug_target = [x + y for x, y in zip(position_cam, orientation)]
+
+            debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
+            debug_point = [x + y for x, y in zip(final_position, debug_orientation)]
+
+            p.removeAllUserDebugItems()
+            p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
+            p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
+            p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
+
+            time.sleep(2.5)
 
         return True
 
 
     def sampleGoodCameraPositionNear(self, state, x, y):
-        base_pos = [x, y]
         world = self.si.getWorld()
-        obj_pos = self.poobjects_pos[world.getStateIdx(world.getStateInt())]
+        if self.multiple_objects:
+            # sample 1 poobject randomly
+            existing_objects = []
+            for i, obj in enumerate(world.getStateInt()):
+                if obj == 1:
+                    existing_objects.append(i)
+            if len(existing_objects) > 0:
+                random_num = self.rng_.uniformInt(0, len(existing_objects) - 1)
+                object_idx = existing_objects[random_num]
+            else:
+                object_idx = 0
+        else:
+            object_idx = world.getStateIdx(world.getStateInt())
+
+        base_pos = [x, y]
+        obj_pos = self.poobjects_pos[object_idx]
         position = [0, 0, self.base_offset]
         final_position = [base_pos[0], base_pos[1], self.base_offset]
         target = obj_pos.copy()
         target[0] = obj_pos[0] - base_pos[0]
         target[1] = obj_pos[1] - base_pos[1]
+        if self.space == "car" or self.multiple_objects == True:
+            target[2] = self.base_offset
         direction = list(map(operator.sub, target, position))
         direction = direction / np.linalg.norm(direction)
         up = [0, 0, 1]
@@ -134,39 +190,58 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         inv = p.calculateInverseKinematics(self.robot.id, self.camera_link_id, position, targetOrientation=quaternion,
                                            maxNumIterations=100)
 
-        state[0] = base_pos[0]
-        state[1] = base_pos[1]
-        state[2] = 0
-        for i, joint_pos in enumerate(inv):
-            state[3 + i] = joint_pos
+        if self.space == "car":
+            state.setX(base_pos[0])
+            state.setY(base_pos[1])
+            state.setYaw(inv[0] - 0.5 * math.pi)
+        elif self.multiple_objects:
+            state[0] = base_pos[0]
+            state[1] = base_pos[1]
+            state[2] = inv[0] - 0.5 * math.pi
+        else:
+            state[0] = base_pos[0]
+            state[1] = base_pos[1]
+            state[2] = 0
+            for i, joint_pos in enumerate(inv):
+                state[3 + i] = joint_pos
 
         print("Sampled camera pos.")
 
         # debugging
-        # debugState = []
-        # debugState.append(base_pos[0])
-        # debugState.append(base_pos[1])
-        # debugState.append(0)
-        # for i, joint_pos in enumerate(inv):
-        #     debugState.append(joint_pos)
-        #
-        # self.robot.set_state(debugState)
-        #
-        # position_cam = p.getLinkState(self.robot.id, self.camera_link_id)[4]
-        # r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link_id)[5])
-        # r = np.reshape(r_mat, (-1, 3))
-        # orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
-        # debug_target = [x + y for x, y in zip(position_cam, orientation)]
-        #
-        # debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
-        # debug_point = [x + y for x, y in zip(final_position, debug_orientation)]
-        #
-        # p.removeAllUserDebugItems()
-        # p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
-        # p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
-        # p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
-        #
-        # time.sleep(2.5)
+        if False:
+            debugState = []
+            if self.space == "car":
+                debugState.append(state.getX())
+                debugState.append(state.getY())
+                debugState.append(state.getYaw())
+            elif self.multiple_objects:
+                debugState.append(state[0])
+                debugState.append(state[1])
+                debugState.append(state[2])
+            else:
+                debugState.append(base_pos[0])
+                debugState.append(base_pos[1])
+                debugState.append(0)
+                for i, joint_pos in enumerate(inv):
+                    debugState.append(joint_pos)
+
+            self.robot.set_state(debugState)
+
+            position_cam = p.getLinkState(self.robot.id, self.camera_link_id)[4]
+            r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, self.camera_link_id)[5])
+            r = np.reshape(r_mat, (-1, 3))
+            orientation = np.dot(r, [[0], [0], [1]]).flatten().tolist()
+            debug_target = [x + y for x, y in zip(position_cam, orientation)]
+
+            debug_orientation = np.dot(mat, [[0], [0], [1]]).flatten().tolist()
+            debug_point = [x + y for x, y in zip(final_position, debug_orientation)]
+
+            p.removeAllUserDebugItems()
+            p.addUserDebugLine(final_position, obj_pos, lineColorRGB=[1, 0, 0], lineWidth=5)
+            p.addUserDebugLine(final_position, debug_point, lineColorRGB=[0, 0, 1], lineWidth=5)
+            p.addUserDebugLine(position_cam, debug_target, lineColorRGB=[0, 1, 0], lineWidth=5)
+
+            time.sleep(2.5)
 
         # time.sleep(10)
 

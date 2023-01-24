@@ -45,7 +45,7 @@ class BoxDemo():
         # self.pb_ompl_interface.set_planner("RRT")
 
         # TODO use camera state sampler
-        # self.pb_ompl_interface.set_state_sampler_name("camera")
+        self.pb_ompl_interface.set_state_sampler_name("camera")
 
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
@@ -84,6 +84,7 @@ class BoxDemo():
         box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
 
         self.poobjects.append(box_id)
+        self.poobjects_properties.append([visBoxId, colBoxId, box_pos])
         return box_id
 
     def demo(self):
@@ -140,7 +141,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    time.sleep(10)
+    # time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")

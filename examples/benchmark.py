@@ -81,10 +81,12 @@ class BoxDemo():
         # add obstacles
         self.add_obstacles()
 
+        self.define_goal_states()
+
         # setup pb_ompl
         # self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, 10, [[1], [0], [0]])
         # for mobile arm
-        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states)
+        self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties, 19, [[0], [0], [1]], self.goal_states, "real")
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -92,9 +94,7 @@ class BoxDemo():
         # self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
 
-        self.define_goal_states()
-
-        # self.pb_ompl_interface.set_state_sampler_name("camera")
+        self.pb_ompl_interface.set_state_sampler_name("camera")
 
         # add camera
         self.projectionMatrix = p.computeProjectionMatrixFOV(
@@ -212,7 +212,7 @@ class BoxDemo():
         req = t.Benchmark.Request()
         req.maxTime = 20.0
         req.maxMem = 1000.0
-        req.runCount = 100
+        req.runCount = 10
         req.displayProgress = True
 
         b.benchmark(req)
@@ -222,7 +222,7 @@ class BoxDemo():
 
 if __name__ == '__main__':
     faulthandler.enable()
-    time.sleep(10)
+    # time.sleep(10)
     env = BoxDemo()
     sys.setrecursionlimit(10000)
     env.benchmark()
