@@ -38,6 +38,19 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         self.space = space
 
 
+    def sampleUniform(self, state):
+        bounds = self.robot.get_joint_bounds()
+        if self.space == "car":
+            state.setX(self.rng_.uniformReal(bounds[0][0], bounds[0][1]))
+            state.setY(self.rng_.uniformReal(bounds[1][0], bounds[1][1]))
+            state.setYaw(self.rng_.uniformReal(-math.pi, math.pi))
+            if state.getYaw() >= math.pi:
+                state.setYaw(state.getYaw() - math.pi)
+        else:
+            for i, bound in enumerate(bounds):
+                state[i] = self.rng_.uniformReal(bound[0], bound[1])
+        return True
+
     def sampleGoodCameraPosition(self, state):
         # rstate = self.state_to_list(state)
         # sample uniformly in 50% of the cases
@@ -96,6 +109,17 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             state.setX(base_pos[0])
             state.setY(base_pos[1])
             state.setYaw(inv[0] - 0.5 * math.pi)
+            in_range = False
+            while not in_range:
+                if state.getYaw() < -math.pi:
+                    state.setYaw(state.getYaw() + math.pi)
+                elif state.getYaw() >= math.pi:
+                    state.setYaw(state.getYaw() - math.pi)
+                else:
+                    in_range = True
+            # print("Sampled Yaw: " + str(state.getYaw()))
+            # if not (-math.pi <= state.getYaw() < math.pi):
+            #     print("State out of bounds!")
         elif self.multiple_objects:
             state[0] = base_pos[0]
             state[1] = base_pos[1]
@@ -194,6 +218,14 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             state.setX(base_pos[0])
             state.setY(base_pos[1])
             state.setYaw(inv[0] - 0.5 * math.pi)
+            in_range = False
+            while not in_range:
+                if state.getYaw() < -math.pi:
+                    state.setYaw(state.getYaw() + math.pi)
+                elif state.getYaw() >= math.pi:
+                    state.setYaw(state.getYaw() - math.pi)
+                else:
+                    in_range = True
         elif self.multiple_objects:
             state[0] = base_pos[0]
             state[1] = base_pos[1]

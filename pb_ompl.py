@@ -492,13 +492,16 @@ class PbOMPL():
 
             num_solutions = pdef.getSolutionCount()
 
+            max_len = INTERPOLATE_NUM
             lens = []
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
                 lens.append(self.calc_path_len(sol_path_list))
-            seg = INTERPOLATE_NUM / np.max(lens)
+                if len(sol_path_list) > max_len:
+                    max_len = len(sol_path_list)
+            seg = max_len / np.max(lens)
 
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
@@ -512,8 +515,9 @@ class PbOMPL():
                     interpolate_num = 1
                 sol_path_geometric.interpolateBase(interpolate_num, 2)
                 last_state = sol_path_geometric.getState(interpolate_num - 1)
-                for n in range(INTERPOLATE_NUM - interpolate_num):
-                    sol_path_geometric.append(last_state)
+                for n in range(max_len - interpolate_num):
+                    if len(sol_path_geometric.getStates()) < max_len:
+                        sol_path_geometric.append(last_state)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
                 all_sol_path_lists.append(sol_path_list)

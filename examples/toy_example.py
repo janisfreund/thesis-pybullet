@@ -44,7 +44,6 @@ class BoxDemo():
         self.pb_ompl_interface.set_planner("Partial")
         # self.pb_ompl_interface.set_planner("RRT")
 
-        # TODO use camera state sampler
         self.pb_ompl_interface.set_state_sampler_name("camera")
 
         # add camera
