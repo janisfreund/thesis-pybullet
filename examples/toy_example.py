@@ -66,7 +66,7 @@ class BoxDemo():
 
         # add targets
         self.add_door([-0.3, 0.8, 0.1], [0.1, 1.5, 0.2], [1., 0., 0., 1.])
-        # self.add_door([0.4, 1.5, 0.1], [0.1, 0.8, 0.2], [1., 0., 0., 1.])
+        self.add_door([0.4, 1.5, 0.1], [0.1, 0.8, 0.2], [0., 1., 0., 1.])
 
     def add_box(self, box_pos, half_box_size, color):
         visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=color)
@@ -140,7 +140,7 @@ class BoxDemo():
 
 
 if __name__ == '__main__':
-    # time.sleep(10)
+    time.sleep(10)
     env = BoxDemo()
     env.demo()
     input("Press Enter to continue...")

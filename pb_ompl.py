@@ -247,6 +247,7 @@ class PbOMPL():
             if utils.pairwise_collision(body1, body2):
                 # print('body collision', body1, body2)
                 # print(get_body_name(body1), get_body_name(body2))
+                # print("Robot collides with normal object!")
                 return False
 
         # check collision against partially observable objects
@@ -257,7 +258,7 @@ class PbOMPL():
         po_pairs = list(product(self.moving_bodies, existing_objects))
         for body1, body2 in po_pairs:
             if utils.pairwise_collision(body1, body2):
-                print("Robot collides with poobject!")
+                # print("Robot collides with poobject!")
                 return False
 
         # print("State is valid!")
@@ -409,8 +410,8 @@ class PbOMPL():
 
     def setup_collision_detection(self, robot, obstacles, self_collisions = True, allow_collision_links = []):
         self.check_link_pairs = utils.get_self_link_pairs(robot.id, robot.joint_idx) if self_collisions else []
-        if len(utils.get_moving_links(robot.id, robot.joint_idx)) == 0:
-            moving_links = frozenset([0])
+        if len(utils.get_moving_links(robot.id, robot.joint_idx)) < 2:
+            moving_links = frozenset([-1, 0])
         else:
             moving_links = frozenset(
                 [item for item in utils.get_moving_links(robot.id, robot.joint_idx) if not item in allow_collision_links])

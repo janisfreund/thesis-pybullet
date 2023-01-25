@@ -244,7 +244,7 @@ class BoxDemo():
 
 if __name__ == '__main__':
     faulthandler.enable()
-    # time.sleep(10)
+    time.sleep(10)
     env = BoxDemo()
     # env.test()
     env.demo()
