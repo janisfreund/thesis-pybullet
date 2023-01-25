@@ -484,8 +484,8 @@ class PbOMPL():
         res = False
         all_sol_path_lists = []
         self.tree_path_lists = []
+        self.finished_idx = []
         if solved:
-            print("Found solution: interpolating into {} segments on average".format(INTERPOLATE_NUM))
             # print the path to screen
 
             pdef = self.ss.getProblemDefinition()
@@ -493,6 +493,8 @@ class PbOMPL():
             num_solutions = pdef.getSolutionCount()
 
             max_len = INTERPOLATE_NUM
+            print("Found solution: interpolating into {} segments".format(max_len))
+
             lens = []
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
@@ -501,7 +503,11 @@ class PbOMPL():
                 lens.append(self.calc_path_len(sol_path_list))
                 if len(sol_path_list) > max_len:
                     max_len = len(sol_path_list)
+                # print("First entry: " + str(sol_path_list[0]))
+                # print("Last entry: " + str(sol_path_list[-1]) + "\n")
             seg = max_len / np.max(lens)
+
+            # print("-----------------------")
 
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
@@ -511,22 +517,25 @@ class PbOMPL():
                 self.tree_path_lists.append(sol_path_list)
 
                 interpolate_num = int(lens[i] * seg)
-                if interpolate_num == 0:
-                    interpolate_num = 1
+                if interpolate_num == 0 or interpolate_num < len(sol_path_list):
+                    interpolate_num = len(sol_path_list)
+                self.finished_idx.append(len(sol_path_list))
                 sol_path_geometric.interpolateBase(interpolate_num, 2)
                 last_state = sol_path_geometric.getState(interpolate_num - 1)
+                # last_state = sol_path_geometric.getStates()[-1]
                 for n in range(max_len - interpolate_num):
                     if len(sol_path_geometric.getStates()) < max_len:
                         sol_path_geometric.append(last_state)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
+                # print("First entry: " + str(sol_path_list[0]))
+                # print("Last entry: " + str(sol_path_list[-1]) + "\n")
+                # for sol_state in sol_path_list:
+                #     print(sol_state[0:2])
+                # print("------------------")
                 all_sol_path_lists.append(sol_path_list)
-            # print(len(sol_path_list))
-            # print(sol_path_list)
-
-            # TODO check interpolated states
-            # for sol_path in sol_path_list:
-            #     self.is_state_valid(sol_path)
+                # print(sol_path_list)
+                # print("\n")
 
             res = True
         else:
@@ -631,7 +640,7 @@ class PbOMPL():
         print("Executing paths for " + str(len(robots)) + " robots.")
         text_ids = [None] * len(robots)
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
-        for q in paths_:
+        for state_idx, q in enumerate(paths_):
             if int(p.readUserDebugParameter(raw_path_param)) != line:
                 line = int(p.readUserDebugParameter(raw_path_param))
                 if line >= 0:
@@ -731,6 +740,7 @@ class PbOMPL():
                                                 lineColorRGB=colors[i % len(colors)], lineWidth=5))
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
+                            # if state_idx < self.finished_idx[i]:
                             robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
                             # self.robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
                             # if drawPaths:
@@ -766,6 +776,7 @@ class PbOMPL():
             else:
                 for i, robot in enumerate(robots):
                     # self.robot.set_state(q[i])
+                    # if state_idx < self.finished_idx[i]:
                     robot.set_state(q[i])
                     # print("Robot state: " + self.list_to_string(q[i]))
                     # if drawPaths:
