@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 30.0
+DEFAULT_PLANNING_TIME = 200.0
 
 class PbOMPLRobot():
     '''
@@ -191,6 +191,14 @@ class PbOMPL():
 
         self.ss = og.SimpleSetup(self.space)
 
+        if self.space_name == "car":
+            self.ss.getProblemDefinition().setMode(2)
+        else:
+            if len(self.goal_states) == 0:
+                self.ss.getProblemDefinition().setMode(0)
+            else:
+                self.ss.getProblemDefinition().setMode(1)
+
         self.si = self.ss.getSpaceInformation()
 
         if (space == "car" or len(self.goal_states) == 0):
@@ -200,7 +208,6 @@ class PbOMPL():
 
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
-        self.si = self.ss.getSpaceInformation()
         # self.si.setStateValidityCheckingResolution(0.005)
         # self.collision_fn = pb_utils.get_collision_fn(self.robot_id, self.robot.joint_idx, self.obstacles, [], True, set(),
         #                                                 custom_limits={}, max_distance=0, allow_collision_links=[])
@@ -258,7 +265,8 @@ class PbOMPL():
         po_pairs = list(product(self.moving_bodies, existing_objects))
         for body1, body2 in po_pairs:
             if utils.pairwise_collision(body1, body2):
-                # print("Robot collides with poobject!")
+                print("Robot collides with poobject!")
+                # time.sleep(1)
                 return False
 
         # print("State is valid!")
@@ -607,7 +615,7 @@ class PbOMPL():
                       meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
                       path is collision free, this is somewhat acceptable.
         '''
-        colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
         po_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
         # draw path
         if drawPaths and stepParam == "":
@@ -831,12 +839,12 @@ class PbOMPL():
         '''
         colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
         # draw path
-        if drawPaths:
-            for i in range(self.ss.getProblemDefinition().getSolutionCount()):
-                for n in range(len(self.tree_path_lists[i]) - 1):
-                    p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
-                                       [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
-                                       lineColorRGB=colors[i % len(colors)], lineWidth=5)
+        # if drawPaths:
+        #     for i in range(self.ss.getProblemDefinition().getSolutionCount()):
+        #         for n in range(len(self.tree_path_lists[i]) - 1):
+        #             p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+        #                                [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
+        #                                lineColorRGB=colors[i % len(colors)], lineWidth=5)
         params = []
         for i in range(len(paths)):
             params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
@@ -884,7 +892,7 @@ class PbOMPL():
                                 camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
 
                             p.stepSimulation()
-                            time.sleep(0.01)
+                            time.sleep(0.05)
 
                     else:
                         self.robot.set_state(q)

@@ -170,15 +170,21 @@ class BoxDemo():
         # print('Warehouse:')
         # print(wh_info)
 
+        # self.add_shelf_down(-2.7, 1.85)
+        # self.add_shelf_down(2.7, 1.85)
+        # self.add_shelf_up(-2.7, -4)
+        # self.add_shelf_up(2.7, -4)
 
-    def add_box(self, box_pos, half_box_size):
+    def add_box(self, box_pos, half_box_size, color):
+        visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=color)
         colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=half_box_size)
-        box_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
+        box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId,
+                                   basePosition=box_pos)
 
         self.obstacles.append(box_id)
         return box_id
 
-    def add_door(self,  box_pos, half_box_size, color):
+    def add_door(self, box_pos, half_box_size, color):
         visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=color)
         colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=half_box_size)
         box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
@@ -187,6 +193,36 @@ class BoxDemo():
         # self.poobjects_properties.append([box_pos, half_box_size, color])
         self.poobjects_properties.append([visBoxId, colBoxId, box_pos])
         return box_id
+
+    def add_shelf_down(self, x, y):
+        self.add_box([x, y, 1.8], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 1.42], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 1.04], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 0.66], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 0.28], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+
+        self.add_box([x - 0.6, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x - 0.2, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.2, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.6, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+
+        self.add_box([x - 0.2, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.2, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+
+    def add_shelf_up(self, x, y):
+        self.add_box([x, y, 1.8], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 1.42], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 1.04], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 0.66], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+        self.add_box([x, y, 0.28], [0.6, 0.15, 0.02], [0.8, 0.8, 0.8, 1])
+
+        self.add_box([x - 0.6, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x - 0.2, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.2, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.6, y - 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+
+        self.add_box([x - 0.2, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
+        self.add_box([x + 0.2, y + 0.15, 0.9], [0.015, 0.015, 0.9], [0.8, 0.8, 0.8, 1])
 
     def demo(self):
         # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
