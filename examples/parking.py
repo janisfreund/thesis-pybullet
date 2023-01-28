@@ -35,7 +35,8 @@ class BoxDemo():
 
         # warehouse_ids = p.loadSDF("../models/warehouse_no_ground/model.sdf")
         # p.resetBasePositionAndOrientation(warehouse_ids[0], (0.0, 0.0, 0.2), (0.0, 0.0, 0.0, 1.0))
-        p.loadURDF("plane.urdf", useFixedBase=True)
+        # p.loadURDF("plane.urdf", useFixedBase=True)
+        p.loadURDF("../models/floor/floor.urdf", useFixedBase=True)
 
         # colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.5, 0.3, 0.2])
         # robot_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=colBoxId, basePosition=[0, 0, 0])
@@ -108,30 +109,30 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add parking lots
-        self.add_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
-        self.add_box([3, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
-        self.add_box([2.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_box([3, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_box([2.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
 
-        self.add_box([4, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
-        self.add_box([3.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([4, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_box([3.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
 
-        self.add_box([5, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
-        self.add_box([4.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([5, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_box([4.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
 
-        self.add_box([6, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
-        self.add_box([5.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([6, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_box([5.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
 
 
         # add street limits
-        self.add_box([3, 2, 0.25], [5, 0.2, 0.25], [0.8, 0.8, 0.8, 1], True)
-        self.add_box([3, -3, 0.25], [5, 0.2, 0.25], [0.8, 0.8, 0.8, 1], True)
+        self.add_box([3, 2, 0.25], [5, 0.2, 0.25], [0.5, 0.5, 0.5, 1], True)
+        self.add_box([3, -3, 0.25], [5, 0.2, 0.25], [0.5, 0.5, 0.5, 1], True)
 
 
         # add parked cars
-        self.add_door([2.5, 0.8, 0], [0.3, 0.6, 0.2], [1., 0., 0., 1.])
-        self.add_door([3.5, 0.8, 0], [0.3, 0.6, 0.2], [0., 1., 0., 1.])
-        self.add_door([4.5, 0.8, 0], [0.3, 0.6, 0.2], [0., 0., 1., 1.])
-        self.add_door([5.5, 0.8, 0], [0.3, 0.6, 0.2], [0., 0., 0., 1.])
+        self.add_door([2.5, 0.8, 0.1], [0.3, 0.6, 0.1], [1., 0., 0., 1.])
+        self.add_door([3.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 1., 0., 1.])
+        self.add_door([4.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 1., 1.])
+        self.add_door([5.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 0., 1.])
 
 
         # add mesh environment

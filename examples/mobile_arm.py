@@ -13,6 +13,7 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 import pb_ompl
 from my_planar_robot import MyPlanarRobot
 from my_planar_robot import MyMobileArm
+from my_planar_robot import MySmallMobileArm
 
 
 class BoxDemo():
@@ -23,14 +24,16 @@ class BoxDemo():
         self.goal_states = []
 
         p.connect(p.GUI)
-        p.setGravity(0, 0, -9.8)
+        # p.setGravity(0, 0, 0)
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         # warehouse_ids = p.loadSDF("../models/warehouse_no_ground/model.sdf")
         # p.resetBasePositionAndOrientation(warehouse_ids[0], (0.0, 0.0, 0.2), (0.0, 0.0, 0.0, 1.0))
         self.warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
-        p.loadURDF("plane.urdf", useFixedBase=True)
+        # p.loadURDF("plane.urdf", useFixedBase=True)
+        floor = p.loadURDF("../models/floor/floor.urdf", useFixedBase=True)
+        self.obstacles.append(floor)
         print("Warehouse imported.")
         # doesnt work
         # self.obstacles.append(self.warehouse)
@@ -68,9 +71,11 @@ class BoxDemo():
 
             ed0.saveUrdf("combined.urdf")
 
-        robot_id = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
-        print("Robot imported")
+        robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
         robot = MyMobileArm(robot_id)
+
+        print("Robot imported")
+
         # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
 
@@ -227,8 +232,8 @@ class BoxDemo():
     def demo(self):
         # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
         # goal = [1.5, 1.5, math.radians(-90), 0, 0, 0, 0, 0, math.radians(180), 0]
-        start = [0, 0, 0, 0, 0]
-        goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180)]
+        start = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180), 0, 0, 0, 0, 0]
 
         #visualize start and goal pose
         # p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
@@ -244,7 +249,7 @@ class BoxDemo():
         if res:
             robots = []
             for _ in paths:
-                rid = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
+                rid = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
                 r = MyMobileArm(rid)
                 robots.append(r)
             drawPath = True

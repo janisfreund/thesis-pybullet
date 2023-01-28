@@ -1,8 +1,12 @@
 <?xml version="0.0" ?>
 <robot name="create_2">
+    <material name="grey">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+    </material>
+
 	<link name="base_footprint">
 		<inertial>
-			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
+			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 -2.00000"/>
 			<mass value="1.00000"/>
 			<inertia ixx="0.00000" ixy="0" ixz="0" iyy="0.00000" iyz="0" izz="0.00000"/>
 		</inertial>
@@ -11,9 +15,7 @@
 			<geometry>
 				<box size="0.00100 0.00100 0.00100"/>
 			</geometry>
-			<material name="mat_-1_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.01700"/>
@@ -33,9 +35,7 @@
 			<geometry>
 				<mesh filename="../models/create_description/meshes/create_2.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_0_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.03080"/>
@@ -90,9 +90,7 @@
 			<geometry>
 				<cylinder length="0.02400" radius="0.03600"/>
 			</geometry>
-			<material name="mat_6_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 1.57080 -4.71239" xyz="0.00000 0.00000 0.00000"/>
@@ -112,9 +110,7 @@
 			<geometry>
 				<cylinder length="0.02400" radius="0.03600"/>
 			</geometry>
-			<material name="mat_7_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 1.57080 -4.71239" xyz="0.00000 0.00000 0.00000"/>
@@ -134,9 +130,7 @@
 			<geometry>
 				<sphere radius="0.01800"/>
 			</geometry>
-			<material name="mat_8_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 1.57080 -4.71239" xyz="0.00000 0.00000 0.00000"/>
@@ -163,9 +157,7 @@
 			<geometry>
 				<box size="0.05000 0.02000 0.02000"/>
 			</geometry>
-			<material name="mat_10_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 	</link>
 	<link name="panda_link0">
@@ -179,9 +171,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link0.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_-1_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -201,9 +191,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link1.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_0_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -223,9 +211,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link2.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_1_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -245,9 +231,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link3.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_2_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -267,9 +251,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link4.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_3_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -289,9 +271,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link5.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_4_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -311,9 +291,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link6.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_5_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -333,9 +311,7 @@
 			<geometry>
 				<mesh filename="../models/franka_description/meshes/visual/link7.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_6_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 		<collision>
 			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
@@ -355,9 +331,7 @@
 			<geometry>
 				<box size="0.02000 0.02000 0.05000"/>
 			</geometry>
-			<material name="mat_7_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
 	</link>
 	<link name="panda_link9">
@@ -448,7 +422,7 @@
 		<parent link="base_footprint"/>
 		<child link="panda_link0"/>
 		<dynamics damping="1.0" friction="0.0001"/>
-		<origin rpy="0.00000 0.00000 0.00000" xyz="0.00000 0.00000 0.00000"/>
+		<origin rpy="0.00000 0.00000 0.00000" xyz="0.00000 0.00000 0.5"/>
 		<axis xyz="0.00000 0.00000 1.00000"/>
 	</joint>
 	<joint name="panda_joint1" type="revolute">
