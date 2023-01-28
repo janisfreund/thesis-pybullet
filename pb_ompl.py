@@ -28,8 +28,8 @@ from scipy.spatial.transform import Rotation as R
 
 from examples.camera_state_sampler import CameraStateSampler
 
-INTERPOLATE_NUM = 50
-DEFAULT_PLANNING_TIME = 200.0
+INTERPOLATE_NUM = 1000
+DEFAULT_PLANNING_TIME = 30.0
 
 class PbOMPLRobot():
     '''
@@ -837,7 +837,9 @@ class PbOMPL():
                       meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
                       path is collision free, this is somewhat acceptable.
         '''
-        colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0.5, 0, 0], [0, 0.5, 0], [0, 0, 0.5], [0.5, 0.5, 0],
+                  [0.5, 0, 0.5], [0, 0.5, 0.5]]
+        po_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
         # draw path
         # if drawPaths:
         #     for i in range(self.ss.getProblemDefinition().getSolutionCount()):
@@ -845,16 +847,37 @@ class PbOMPL():
         #             p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
         #                                [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
         #                                lineColorRGB=colors[i % len(colors)], lineWidth=5)
+        already_added = dict()
+        for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
+            observations = []
+            for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:
+                observations.append(observation)
+            s = self.state_to_list(state)
+            key_state = str(s[0]) + "," + str(s[1])
+            if not (key_state in already_added):
+                p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=20)
+                already_added[key_state] = 1
+            else:
+                p.addUserDebugPoints([[s[0] + (0.025 * already_added[key_state]), s[1], 0]],
+                                     [po_colors[observations[0]]], pointSize=20)
+                already_added[key_state] += 1
         params = []
         for i in range(len(paths)):
             params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
         p_worlds = self.ss.getProblemDefinition().getPWorlds()
+        path_points = -1
         while True:
             for n, path in enumerate(paths):
                 print("Executing path " + str(n))
                 self.update_poobjects_probability(p_worlds[n])
                 print("Current world: " + self.vector_to_string(p_worlds[n]))
+                # print path
+                if drawPaths:
+                    p.removeUserDebugItem(path_points)
+                    points = [[point[0], point[1], 0] for point in path]
+                    point_colors = [[0, 0, 0] for _ in path]
+                    path_points = p.addUserDebugPoints(points, point_colors, 5, 0)
                 for q in path:
                     oldParam = [0] * len(paths)
 
@@ -866,6 +889,12 @@ class PbOMPL():
                             changedIdx = idx
                         oldParam[idx] = int(p.readUserDebugParameter(param))
                     if changed:
+                        self.update_poobjects_probability(p_worlds[changedIdx])
+                        if drawPaths:
+                            p.removeUserDebugItem(path_points)
+                            points = [[point[0], point[1], 0] for point in path]
+                            point_colors = [[0, 0, 0] for _ in path]
+                            path_points = p.addUserDebugPoints(points, point_colors, 5, 0)
                         for q in paths[changedIdx]:
                             self.robot.set_state(q)
 
@@ -892,7 +921,7 @@ class PbOMPL():
                                 camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
 
                             p.stepSimulation()
-                            time.sleep(0.05)
+                            time.sleep(0.01)
 
                     else:
                         self.robot.set_state(q)
@@ -919,7 +948,7 @@ class PbOMPL():
                             p.removeUserDebugItem(camera_line_id)
                             camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
                     p.stepSimulation()
-                    time.sleep(0.05)
+                    time.sleep(0.01)
 
     def execute(self, path, dynamics=False, camera=False, projectionMatrix=None, linkid=0,
                 camera_orientation=[[1], [0], [0]]):

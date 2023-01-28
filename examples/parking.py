@@ -31,6 +31,7 @@ class BoxDemo():
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        print(pybullet_data.getDataPath())
 
         # warehouse_ids = p.loadSDF("../models/warehouse_no_ground/model.sdf")
         # p.resetBasePositionAndOrientation(warehouse_ids[0], (0.0, 0.0, 0.2), (0.0, 0.0, 0.0, 1.0))
@@ -107,23 +108,23 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add parking lots
-        self.add_box([2, 0.8, 0], [0.05, 0.8, 0.05], [1, 1, 1, 1], False)
-        self.add_box([3, 0.8, 0], [0.05, 0.8, 0.05], [1, 1, 1, 1], False)
-        self.add_box([2.5, 1.55, 0], [0.5, 0.05, 0.05], [1, 1, 1, 1], False)
+        self.add_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([3, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([2.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
 
-        self.add_box([4, 0.8, 0], [0.05, 0.8, 0.05], [1, 1, 1, 1], False)
-        self.add_box([3.5, 1.55, 0], [0.5, 0.05, 0.05], [1, 1, 1, 1], False)
+        self.add_box([4, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([3.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
 
-        self.add_box([5, 0.8, 0], [0.05, 0.8, 0.05], [1, 1, 1, 1], False)
-        self.add_box([4.5, 1.55, 0], [0.5, 0.05, 0.05], [1, 1, 1, 1], False)
+        self.add_box([5, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([4.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
 
-        self.add_box([6, 0.8, 0], [0.05, 0.8, 0.05], [1, 1, 1, 1], False)
-        self.add_box([5.5, 1.55, 0], [0.5, 0.05, 0.05], [1, 1, 1, 1], False)
+        self.add_box([6, 0.8, 0], [0.05, 0.8, 0.05], [0.8, 0.8, 0.8, 1], False)
+        self.add_box([5.5, 1.55, 0], [0.5, 0.05, 0.05], [0.8, 0.8, 0.8, 1], False)
 
 
         # add street limits
-        self.add_box([3, 2, 1], [5, 0.2, 1], [1, 1, 1, 1], True)
-        self.add_box([3, -3, 1], [5, 0.2, 1], [1, 1, 1, 1], True)
+        self.add_box([3, 2, 0.25], [5, 0.2, 0.25], [0.8, 0.8, 0.8, 1], True)
+        self.add_box([3, -3, 0.25], [5, 0.2, 0.25], [0.8, 0.8, 0.8, 1], True)
 
 
         # add parked cars
@@ -166,7 +167,7 @@ class BoxDemo():
 
         #visualize start and goal pose
         p.addUserDebugPoints(pointPositions=[[start[0], start[1], 0]], pointColorsRGB=[[0,1,1]], pointSize=15, lifeTime=0)
-        p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
+        # p.addUserDebugPoints(pointPositions=[[goal[0], goal[1], 0]], pointColorsRGB=[[0, 0, 1]], pointSize=15, lifeTime=0)
 
         self.robot.set_state(start)
 
@@ -188,7 +189,7 @@ class BoxDemo():
                 #                                    linkid=0, camera_orientation=[[1], [0], [0]], robots=robots, stepParam=stepParam)
                 self.pb_ompl_interface.execute_one_after_another(paths, drawPath, camera=False, projectionMatrix=self.projectionMatrix,
                                                    linkid=19, camera_orientation=[[0], [0], [1]])
-                drawPath = False
+                # drawPath = False
             return res, paths
 
 

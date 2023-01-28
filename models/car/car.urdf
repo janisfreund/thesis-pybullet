@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 <robot name="car">
+    <material name="grey">
+        <color rgba="0.8 0.8 0.8 1.0"/>
+    </material>
 
     <link name="base">
         <visual>
             <geometry>
                 <box size="0.5 0.3 0.2"/>
             </geometry>
+            <material name="grey"/>
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0.017"/>
@@ -20,6 +24,7 @@
             <geometry>
                 <box size="0.1 0.02 0.02"/>
             </geometry>
+            <material name="grey"/>
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0.017"/>
