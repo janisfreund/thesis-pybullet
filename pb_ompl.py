@@ -622,7 +622,7 @@ class PbOMPL():
                       path is collision free, this is somewhat acceptable.
         '''
         colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
-        po_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
+        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
         # draw path
         if drawPaths and stepParam == "":
             for i in range(self.ss.getProblemDefinition().getSolutionCount()):
@@ -638,10 +638,10 @@ class PbOMPL():
             s = self.state_to_list(state)
             key_state = str(s[0]) + "," + str(s[1])
             if not (key_state in already_added):
-                p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=20)
+                self.add_debug_point([s[0], s[1]], 0.1, po_colors[observations[0]])
                 already_added[key_state] = 1
             else:
-                p.addUserDebugPoints([[s[0] + (0.025 * already_added[key_state]), s[1], 0]], [po_colors[observations[0]]], pointSize=20)
+                self.add_debug_point([s[0], s[1]], 0.1, po_colors[observations[0]])
                 already_added[key_state] += 1
         p.removeBody(self.robot_id)
         paths_ = np.moveaxis(paths, 0, 1)
@@ -845,7 +845,7 @@ class PbOMPL():
         '''
         colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0.5, 0, 0], [0, 0.5, 0], [0, 0, 0.5], [0.5, 0.5, 0],
                   [0.5, 0, 0.5], [0, 0.5, 0.5]]
-        po_colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
+        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
         # draw path
         # if drawPaths:
         #     for i in range(self.ss.getProblemDefinition().getSolutionCount()):
@@ -853,26 +853,13 @@ class PbOMPL():
         #             p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
         #                                [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
         #                                lineColorRGB=colors[i % len(colors)], lineWidth=5)
-        already_added = dict()
-        for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
-            observations = []
-            for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:
-                observations.append(observation)
-            s = self.state_to_list(state)
-            key_state = str(s[0]) + "," + str(s[1])
-            if not (key_state in already_added):
-                p.addUserDebugPoints([[s[0], s[1], 0]], [po_colors[observations[0]]], pointSize=20)
-                already_added[key_state] = 1
-            else:
-                p.addUserDebugPoints([[s[0] + (0.025 * already_added[key_state]), s[1], 0]],
-                                     [po_colors[observations[0]]], pointSize=20)
-                already_added[key_state] += 1
         params = []
         for i in range(len(paths)):
             params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
         camera_line_id = p.addUserDebugLine([0, 0, 0], [0, 0, 0], lineColorRGB=[1, 0, 0], lineWidth=5)
         p_worlds = self.ss.getProblemDefinition().getPWorlds()
         path_points = -1
+        obs_points = []
         while True:
             for n, path in enumerate(paths):
                 print("Executing path " + str(n))
@@ -884,6 +871,15 @@ class PbOMPL():
                     points = [[point[0], point[1], 0] for point in path]
                     point_colors = [[0, 0, 0] for _ in path]
                     path_points = p.addUserDebugPoints(points, point_colors, 5, 0)
+                for item in obs_points:
+                    p.removeBody(item)
+                for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
+                    observations = []
+                    for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:
+                        observations.append(observation)
+                    s = self.state_to_list(state)
+                    if s in path:
+                        obs_points.append(self.add_debug_point([s[0], s[1]], 0.1, po_colors[observations[0]]))
                 for q in path:
                     oldParam = [0] * len(paths)
 
@@ -1071,3 +1067,7 @@ class PbOMPL():
             s += ", "
         s += "]"
         return s
+
+    def add_debug_point(self, pos, radius, color):
+        visBoxId = p.createVisualShape(p.GEOM_CYLINDER, radius=radius, length=0.01, rgbaColor=color)
+        return p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, basePosition=[pos[0], pos[1], 0.005])
