@@ -29,7 +29,7 @@ from scipy.spatial.transform import Rotation as R
 from examples.camera_state_sampler import CameraStateSampler
 
 INTERPOLATE_NUM = 1000
-DEFAULT_PLANNING_TIME = 10.0
+DEFAULT_PLANNING_TIME = 30.0
 
 class PbOMPLRobot():
     '''
@@ -360,11 +360,17 @@ class PbOMPL():
 
     def update_poobjects_probability(self, p_world):
         for i, pro in enumerate(self.poobjects_properties):
-            # TODO why +2 to index
-            old_color = p.getVisualShapeData(pro[0] + 2)[0][7]
-            new_color = list(old_color)
-            new_color[3] = p_world[i]
-            p.changeVisualShape(pro[0] + 2, -1, rgbaColor=new_color)
+            if len(pro) == 2:
+                old_color = p.getVisualShapeData(pro[0])[0][7]
+                new_color = list(old_color)
+                new_color[3] = p_world[i]
+                p.changeVisualShape(pro[0], -1, rgbaColor=new_color)
+            else:
+                # TODO why +2 to index
+                old_color = p.getVisualShapeData(pro[0] + 2)[0][7]
+                new_color = list(old_color)
+                new_color[3] = p_world[i]
+                p.changeVisualShape(pro[0] + 2, -1, rgbaColor=new_color)
 
     def sample_good_camera_position(self, obj_pos, base_pos, base_offset, camera_link_id):
         # position is directly above base + offset in z direction
@@ -459,7 +465,7 @@ class PbOMPL():
             multiple_objects = (self.space_name == "car" or len(self.goal_states) == 0)
             _, _, zstate = p.getLinkState(self.robot.id, self.camera_link)[4]
             camera_sampler = CameraStateSampler(self.si, zstate, self.camera_link, self.robot,
-                                                [prop[2] for prop in self.poobjects_properties], multiple_objects, self.space_name)
+                                                [prop[-1] for prop in self.poobjects_properties], multiple_objects, self.space_name)
             self.set_state_sampler(camera_sampler)
 
     def plan_start_goal(self, start, goal, allowed_time = DEFAULT_PLANNING_TIME):#DEFAULT_PLANNING_TIME

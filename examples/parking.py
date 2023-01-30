@@ -27,7 +27,6 @@ class BoxDemo():
         self.goal_states = []
 
         p.connect(p.GUI)
-        p.setGravity(0, 0, -9.8)
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -41,8 +40,8 @@ class BoxDemo():
         # colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.5, 0.3, 0.2])
         # robot_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=colBoxId, basePosition=[0, 0, 0])
 
-        robot_id = p.loadURDF("../models/car/car.urdf", globalScaling=2)
-        # robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", globalScaling=2)
+        # robot_id = p.loadURDF("../models/car/car.urdf", globalScaling=2)
+        robot_id = p.loadURDF("../models/car/car_jeep.urdf")
 
         print("Robot imported")
         robot = MyCar(robot_id)
@@ -129,10 +128,15 @@ class BoxDemo():
 
 
         # add parked cars
-        self.add_door([2.5, 0.8, 0.1], [0.3, 0.6, 0.1], [1., 0., 0., 1.])
-        self.add_door([3.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 1., 0., 1.])
-        self.add_door([4.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 1., 1.])
-        self.add_door([5.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 0., 1.])
+        # self.add_door([2.5, 0.8, 0.1], [0.3, 0.6, 0.1], [1., 0., 0., 1.])
+        # self.add_door([3.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 1., 0., 1.])
+        # self.add_door([4.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 1., 1.])
+        # self.add_door([5.5, 0.8, 0.1], [0.3, 0.6, 0.1], [0., 0., 0., 1.])
+
+        self.add_door_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
+        self.add_door_mesh("../models/car/car_jeep_no_cam.urdf", [3.5, 0.8, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
+        self.add_door_mesh("../models/car/car_jeep_no_cam.urdf", [4.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 1., 1.])
+        self.add_door_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
 
 
         # add mesh environment
@@ -150,7 +154,7 @@ class BoxDemo():
             self.obstacles.append(box_id)
         return box_id
 
-    def add_door(self,  box_pos, half_box_size, color):
+    def add_door(self, box_pos, half_box_size, color):
         visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=color)
         colBoxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=half_box_size)
         box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, baseCollisionShapeIndex=colBoxId, basePosition=box_pos)
@@ -159,6 +163,13 @@ class BoxDemo():
         # self.poobjects_properties.append([box_pos, half_box_size, color])
         self.poobjects_properties.append([visBoxId, colBoxId, box_pos])
         return box_id
+
+    def add_door_mesh(self, path, pos, ori, color):
+        obj = p.loadURDF(path, pos, ori)
+        p.changeVisualShape(obj, -1, rgbaColor=color)
+
+        self.poobjects.append(obj)
+        self.poobjects_properties.append([obj, pos])
 
     def demo(self):
         # start = [0, 0, 0, 0, 0, 0, 0, 0, 1.6, 0]
@@ -183,6 +194,8 @@ class BoxDemo():
             #     rid = p.loadURDF("../models/car/car.urdf", (0, 0, 0), globalScaling=2)
             #     r = MyCar(rid)
             #     robots.append(r)
+            for poo in self.poobjects:
+                p.setCollisionFilterGroupMask(poo, -1, 0, 0)
             drawPath = True
             stepParam = ""
             while True:
