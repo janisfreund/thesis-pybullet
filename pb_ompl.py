@@ -621,15 +621,25 @@ class PbOMPL():
                       meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
                       path is collision free, this is somewhat acceptable.
         '''
-        colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5]]
+        colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5], [0, 0, 0]]
         po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
         # draw path
         if drawPaths and stepParam == "":
             for i in range(self.ss.getProblemDefinition().getSolutionCount()):
                 for n in range(len(self.tree_path_lists[i]) - 1):
-                    sol_line_ids.append(p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                    isSame = False
+                    for j in range(self.ss.getProblemDefinition().getSolutionCount()):
+                        if i != j and len(self.tree_path_lists[j]) > n and self.tree_path_lists[j][n][0] == self.tree_path_lists[i][n][0] and self.tree_path_lists[j][n][1] == self.tree_path_lists[i][n][1] and self.tree_path_lists[j][n + 1][0] == self.tree_path_lists[i][n + 1][0] and self.tree_path_lists[j][n + 1][1] == self.tree_path_lists[i][n + 1][1]:
+                            isSame = True
+                    if isSame:
+                        sol_line_ids.append(p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
                                        [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
-                                       lineColorRGB=colors[i % len(colors)], lineWidth=5))
+                                       lineColorRGB=[0, 0, 0], lineWidth=15))
+                    else:
+                        sol_line_ids.append(
+                            p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                               [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1],
+                                                0], lineColorRGB=colors[self.belief_to_world(self.si.getWorld().getAllBeliefStates()[self.ss.getProblemDefinition().getSolutionIdx()[i]]) % len(colors)], lineWidth=5))
         already_added = dict()
         for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
             observations = []
@@ -699,11 +709,28 @@ class PbOMPL():
                     if drawPaths:
                         for i in range(self.ss.getProblemDefinition().getSolutionCount()):
                             for n in range(len(self.tree_path_lists[i]) - 1):
-                                sol_line_ids.append(
-                                    p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
-                                                       [self.tree_path_lists[i][n + 1][0],
-                                                        self.tree_path_lists[i][n + 1][1], 0],
-                                                       lineColorRGB=colors[i % len(colors)], lineWidth=5))
+                                isSame = False
+                                for j in range(self.ss.getProblemDefinition().getSolutionCount()):
+                                    if i != j and len(self.tree_path_lists[j]) > n and self.tree_path_lists[j][n][0] == \
+                                            self.tree_path_lists[i][n][0] and self.tree_path_lists[j][n][1] == \
+                                            self.tree_path_lists[i][n][1] and self.tree_path_lists[j][n + 1][0] == \
+                                            self.tree_path_lists[i][n + 1][0] and self.tree_path_lists[j][n + 1][1] == \
+                                            self.tree_path_lists[i][n + 1][1]:
+                                        isSame = True
+                                if isSame:
+                                    sol_line_ids.append(p.addUserDebugLine(
+                                        [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                        [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
+                                        lineColorRGB=[1, 0.72, 0], lineWidth=15))
+                                else:
+                                    sol_line_ids.append(
+                                        p.addUserDebugLine(
+                                            [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                            [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1],
+                                             0], lineColorRGB=colors[self.belief_to_world(
+                                                self.si.getWorld().getAllBeliefStates()[
+                                                    self.ss.getProblemDefinition().getSolutionIdx()[i]]) % len(colors)],
+                                            lineWidth=5))
             if int(p.readUserDebugParameter(stepParam)) != 0:
                 oldStep = 0
                 while True:
@@ -747,12 +774,31 @@ class PbOMPL():
                             if drawPaths:
                                 for i in range(self.ss.getProblemDefinition().getSolutionCount()):
                                     for n in range(len(self.tree_path_lists[i]) - 1):
-                                        sol_line_ids.append(
-                                            p.addUserDebugLine(
+                                        isSame = False
+                                        for j in range(self.ss.getProblemDefinition().getSolutionCount()):
+                                            if i != j and len(self.tree_path_lists[j]) > n and \
+                                                    self.tree_path_lists[j][n][0] == self.tree_path_lists[i][n][0] and \
+                                                    self.tree_path_lists[j][n][1] == self.tree_path_lists[i][n][1] and \
+                                                    self.tree_path_lists[j][n + 1][0] == self.tree_path_lists[i][n + 1][
+                                                0] and self.tree_path_lists[j][n + 1][1] == \
+                                                    self.tree_path_lists[i][n + 1][1]:
+                                                isSame = True
+                                        if isSame:
+                                            sol_line_ids.append(p.addUserDebugLine(
                                                 [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
-                                                [self.tree_path_lists[i][n + 1][0],
-                                                 self.tree_path_lists[i][n + 1][1], 0],
-                                                lineColorRGB=colors[i % len(colors)], lineWidth=5))
+                                                [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1],
+                                                 0],
+                                                lineColorRGB=[1, 0.72, 0], lineWidth=15))
+                                        else:
+                                            sol_line_ids.append(
+                                                p.addUserDebugLine(
+                                                    [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
+                                                    [self.tree_path_lists[i][n + 1][0],
+                                                     self.tree_path_lists[i][n + 1][1],
+                                                     0], lineColorRGB=colors[self.belief_to_world(
+                                                        self.si.getWorld().getAllBeliefStates()[
+                                                            self.ss.getProblemDefinition().getSolutionIdx()[i]]) % len(
+                                                        colors)], lineWidth=5))
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
                             # if state_idx < self.finished_idx[i]:
@@ -1071,3 +1117,11 @@ class PbOMPL():
     def add_debug_point(self, pos, radius, color):
         visBoxId = p.createVisualShape(p.GEOM_CYLINDER, radius=radius, length=0.01, rgbaColor=color)
         return p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, basePosition=[pos[0], pos[1], 0.005])
+
+    def belief_to_world(self, belief):
+        i = 0
+        for b in belief:
+            if abs(1 - b) < 0.001:
+                return i
+            i += 1
+        return -1
