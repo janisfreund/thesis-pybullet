@@ -8,14 +8,14 @@
         <visual>
             <origin rpy="1.5707 0 0" xyz="5 5 0.0"/>
             <geometry>
-                <mesh filename="package://office/office.obj"/>
+                <mesh filename="package://office/office_no_doors.obj"/>
             </geometry>
             <material name="grey"/>
         </visual>
         <collision concave="yes">
             <origin rpy="1.5707 0 0" xyz="5 5 -0.1"/>
             <geometry>
-                <mesh filename="package://office/office.obj"/>
+                <mesh filename="package://office/office_no_doors.obj"/>
             </geometry>
         </collision>
     </link>

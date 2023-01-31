@@ -26,43 +26,45 @@ class BoxDemo():
         p.setTimeStep(1. / 240.)
 
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        self.warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
-        p.loadURDF("plane.urdf", useFixedBase=True)
-        print("Warehouse imported.")
+        # self.warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
+        # p.loadURDF("plane.urdf", useFixedBase=True)
+        # print("Warehouse imported.")
+        office = p.loadURDF("../models/office/office.urdf", useFixedBase=True)
 
         # load robot
-        # modified from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_utils/examples/combineUrdf.py
-        p0 = bc.BulletClient(connection_mode=p.DIRECT)
-        p0.setAdditionalSearchPath(pybullet_data.getDataPath())
+        if False:
+            # modified from https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_utils/examples/combineUrdf.py
+            p0 = bc.BulletClient(connection_mode=p.DIRECT)
+            p0.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-        p1 = bc.BulletClient(connection_mode=p.DIRECT)
-        p1.setAdditionalSearchPath(pybullet_data.getDataPath())
+            p1 = bc.BulletClient(connection_mode=p.DIRECT)
+            p1.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-        # can also connect using different modes, GUI, SHARED_MEMORY, TCP, UDP, SHARED_MEMORY_SERVER, GUI_SERVER
+            # can also connect using different modes, GUI, SHARED_MEMORY, TCP, UDP, SHARED_MEMORY_SERVER, GUI_SERVER
 
-        roomba = p1.loadURDF("../models/create_description/urdf/create_2.urdf", flags=p0.URDF_USE_IMPLICIT_CYLINDER)
-        franka = p0.loadURDF("../models/franka_description/robots/panda_arm.urdf")
+            roomba = p1.loadURDF("../models/create_description/urdf/create_2.urdf", flags=p0.URDF_USE_IMPLICIT_CYLINDER)
+            franka = p0.loadURDF("../models/franka_description/robots/panda_arm.urdf")
 
-        ed0 = ed.UrdfEditor()
-        ed0.initializeFromBulletBody(roomba, p1._client)
-        ed1 = ed.UrdfEditor()
-        ed1.initializeFromBulletBody(franka, p0._client)
+            ed0 = ed.UrdfEditor()
+            ed0.initializeFromBulletBody(roomba, p1._client)
+            ed1 = ed.UrdfEditor()
+            ed1.initializeFromBulletBody(franka, p0._client)
 
-        parentLinkIndex = 0
+            parentLinkIndex = 0
 
-        jointPivotXYZInParent = [0, 0, 0]
-        jointPivotRPYInParent = [0, 0, 0]
+            jointPivotXYZInParent = [0, 0, 0]
+            jointPivotRPYInParent = [0, 0, 0]
 
-        jointPivotXYZInChild = [0, 0, 0]
-        jointPivotRPYInChild = [0, 0, 0]
+            jointPivotXYZInChild = [0, 0, 0]
+            jointPivotRPYInChild = [0, 0, 0]
 
-        newjoint = ed0.joinUrdf(ed1, parentLinkIndex, jointPivotXYZInParent, jointPivotRPYInParent,
-                                jointPivotXYZInChild, jointPivotRPYInChild, p0._client, p1._client)
-        newjoint.joint_type = p0.JOINT_FIXED
+            newjoint = ed0.joinUrdf(ed1, parentLinkIndex, jointPivotXYZInParent, jointPivotRPYInParent,
+                                    jointPivotXYZInChild, jointPivotRPYInChild, p0._client, p1._client)
+            newjoint.joint_type = p0.JOINT_FIXED
 
-        ed0.saveUrdf("combined.urdf")
+            ed0.saveUrdf("combined.urdf")
 
-        robot_id = p.loadURDF("combined.urdf", (0, 0, 0), globalScaling=1.25)
+        robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
         print("Robot imported")
         # robot = PbOMPLRobot(robot_id)
         robot = MyMobileArm(robot_id)
@@ -81,10 +83,15 @@ class BoxDemo():
 
     def add_obstacles(self):
         # add targets
-        self.add_door([1., 1.9, 1.1], [0.05, 0.05, 0.05], [1.,0., 0., 1.])
-        self.add_door([-1., 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+        # self.add_door([1., 1.9, 1.1], [0.05, 0.05, 0.05], [1.,0., 0., 1.])
+        # self.add_door([-1., 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         # self.add_door([-3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         # self.add_door([3, -4, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
+
+        self.add_door_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
+        self.add_door_mesh("../models/dog/dog.urdf", [2.32, -4.74, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
+        self.add_door_mesh("../models/dog/dog.urdf", [2.05, 4.42, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
+        self.add_door_mesh("../models/dog/dog.urdf", [-4.47, -1.58, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
 
         # store obstacles
         self.pb_ompl_interface.set_obstacles(self.obstacles)
@@ -105,11 +112,20 @@ class BoxDemo():
         self.poobjects.append(box_id)
         return box_id
 
+    def add_door_mesh(self, path, pos, ori, color):
+        obj = p.loadURDF(path, pos, ori)
+        p.changeVisualShape(obj, -1, rgbaColor=color)
+
+        self.poobjects.append(obj)
+
     def demo(self):
         joint_ids = []
         state = []
         for i in range (self.robot.num_dim):
-            joint_ids.append(p.addUserDebugParameter('Joint ' + str(i), -math.pi, math.pi, 0.))
+            if i > 1:
+                joint_ids.append(p.addUserDebugParameter('Joint ' + str(i), -math.pi, math.pi, 0.))
+            else:
+                joint_ids.append(p.addUserDebugParameter('Joint ' + str(i), -5, 5, 0.))
             state.append(0.)
         set_link_id = p.addUserDebugParameter('Camera link ', 0, 25, 10)
         linkid = 10
