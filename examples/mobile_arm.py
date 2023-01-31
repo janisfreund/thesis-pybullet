@@ -36,7 +36,7 @@ class BoxDemo():
         self.obstacles.append(floor)
         print("Warehouse imported.")
         # doesnt work
-        # self.obstacles.append(self.warehouse)
+        self.obstacles.append(self.warehouse)
 
         # load robot
         if False:

@@ -1,4 +1,6 @@
 import os.path as osp
+
+import numpy as np
 import pybullet as p
 import sys
 import pybullet_data
@@ -44,6 +46,12 @@ class BoxDemo():
         self.poobjects_properties = []
         self.goal_states = []
 
+        # office = p.loadURDF("../models/office/office.urdf", (0, 0, 0), useFixedBase=True)
+        # self.obstacles.append(office)
+
+        warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
+        self.obstacles.append(warehouse)
+
         self.add_door([10, 10, 10], [0.001, 0.001, 0.001], [1, 1, 1, 1])
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.robot, self.obstacles, self.poobjects, self.poobjects_properties,
                                                 19, [[0], [0], [1]], self.goal_states, "real")
@@ -52,12 +60,35 @@ class BoxDemo():
 
         state = [0 for _ in range(robot.num_dim)]
         robot.set_state(state)
-
         print("-----------------------------")
         print("-----------------------------")
         print(self.pb_ompl_interface.is_state_valid(state, world))
         print("-----------------------------")
         print("-----------------------------")
+
+        old_x = 0
+        old_y = 0
+        x = p.addUserDebugParameter("x", -5, 5, 0)
+        y = p.addUserDebugParameter("y", -5, 5, 0)
+
+        # for x in np.arange(-5, 5, 0.1):
+        #     for y in np.arange(-5, 5, 0.1):
+        #         robot.set_state([x, y, 0])
+        #         print(self.pb_ompl_interface.is_state_valid(state, world))
+
+        while True:
+            if old_x != p.readUserDebugParameter(x) or old_y != p.readUserDebugParameter(y):
+                old_x = p.readUserDebugParameter(x)
+                old_y = p.readUserDebugParameter(y)
+                state[0] = old_x
+                state[1] = old_y
+                robot.set_state(state)
+                print("-----------------------------")
+                print("-----------------------------")
+                print(self.pb_ompl_interface.is_state_valid(state, world))
+                print("X: " + str(old_x) + ", Y:" + str(old_y))
+                print("-----------------------------")
+                print("-----------------------------")
 
     def add_door(self, box_pos, half_box_size, color):
         visBoxId = p.createVisualShape(p.GEOM_BOX, halfExtents=half_box_size, rgbaColor=color)

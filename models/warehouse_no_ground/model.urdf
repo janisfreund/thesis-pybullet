@@ -1,16 +1,19 @@
 <?xml version="0.0" ?>
 <robot name="warehouse">
+    <material name="grey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
 	<link name="base">
         <visual>
-			<origin rpy="0.00000 -0.00000 0.00000" xyz="0.00000 0.00000 0.03080"/>
+			<origin rpy="0 0 0" xyz="0 0 0"/>
 			<geometry>
 				<mesh filename="../models/warehouse_no_ground/model.dae" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
-			<material name="mat_0_0">
-				<color rgba="1.00000 1.00000 1.00000 1.00000" />
-			</material>
+			<material name="grey"/>
 		</visual>
-		<collision>
+		<collision concave="yes">
+		    <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="../models/warehouse_no_ground/model.dae" scale="1.00000 1.00000 1.00000"/>
             </geometry>
