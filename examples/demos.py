@@ -1,17 +1,15 @@
 import os.path as osp
 import time
-
 import pybullet as p
-import math
 import sys
-import pybullet_data
-from typing import Type
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
 import robots as rb
 import environments
+
+DEMO_SELECTION = 5
 
 
 def add_debug_point(pos, radius, color):
@@ -33,7 +31,7 @@ class Demo:
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.env.robot, self.env.obstacles, self.env.poobjects,
                                                 self.env.poobjects_properties,
                                                 self.robot.cam_link_id, self.robot.cam_orientation,
-                                                self.env.goal_states, "real")
+                                                self.env.goal_states, self.env.space_name, self.env.bounds)
 
         self.pb_ompl_interface.set_obstacles(self.env.obstacles)
         self.pb_ompl_interface.set_planner("Partial")
@@ -53,11 +51,11 @@ class Demo:
         # draw goal position
         add_debug_point([self.env.goal[0], self.env.goal[1], 0], 0.1, color)
 
-    def demo_parallel(self, model, RobotClass):
+    def demo_parallel(self, model, scale, RobotClass):
         if self.res:
             robots = []
             for _ in self.paths:
-                rid = p.loadURDF(model, (self.env.start[0], self.env.start[1], 0))
+                rid = p.loadURDF(model, (self.env.start[0], self.env.start[1], 0), globalScaling=scale)
                 r = RobotClass(rid)
                 robots.append(r)
             drawPath = True
@@ -73,18 +71,68 @@ class Demo:
                                                    stepParam=stepParam, raw_path_param=raw_path_param,
                                                    sol_line_ids=sol_line_ids, line_id=line_id)
 
+    def demo_consecutive(self):
+        if self.res:
+            for poo in self.env.poobjects:
+                p.setCollisionFilterGroupMask(poo, -1, 0, 0)
+            while True:
+                self.pb_ompl_interface.execute_one_after_another(self.paths, True, camera=False,
+                                                                 projectionMatrix=self.projectionMatrix,
+                                                                 linkid=self.robot.cam_link_id,
+                                                                 camera_orientation=self.robot.cam_orientation)
+
 
 if __name__ == '__main__':
     # time.sleep(10)
-    demo_selection = 0
     p.connect(p.GUI)
 
-    if demo_selection == 0:
+    if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
         demo = Demo(env)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
-        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", rb.Roomba)
+        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
+
+    elif DEMO_SELECTION == 1:
+        # simple mobile arm demo
+        env = environments.MobileArmEnv()
+        demo = Demo(env)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
+
+    elif DEMO_SELECTION == 2:
+        # mobile arm with walls demo
+        env = environments.MobileArmHardEnv()
+        demo = Demo(env)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
+
+    elif DEMO_SELECTION == 3:
+        # mobile arm with observation point demo
+        env = environments.MobileArmObservationPointEnv()
+        demo = Demo(env)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
+
+    elif DEMO_SELECTION == 4:
+        # simple parking demo
+        env = environments.ParkingEnv()
+        demo = Demo(env)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_consecutive()
+
+    elif DEMO_SELECTION == 5:
+        # search and rescue demo
+        env = environments.SearchAndRescueEnv()
+        demo = Demo(env)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
+
     input("Press Enter to continue...")

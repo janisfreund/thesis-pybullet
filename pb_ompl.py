@@ -146,7 +146,7 @@ class PbCarSpace(ob.ReedsSheppStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real") -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real", bounds_xy=[[-1, 1], [-1, 1]], planning_time=30, inter_num=1000) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -171,8 +171,10 @@ class PbOMPL():
             self.space = PbCarSpace(robot.num_dim)
 
             bounds = ob.RealVectorBounds(2)
-            bounds.setLow(-2)
-            bounds.setHigh(6)
+            bounds.setLow(0, bounds_xy[0][0])
+            bounds.setHigh(0, bounds_xy[0][1])
+            bounds.setLow(1, bounds_xy[1][0])
+            bounds.setHigh(1, bounds_xy[1][1])
         else:
             self.space = PbStateSpace(robot.num_dim)
 
@@ -181,8 +183,8 @@ class PbOMPL():
             for i, bound in enumerate(joint_bounds):
                 # TODO hardcoded for debugging
                 if i == 0 or i == 1:
-                    bounds.setLow(i, -5.5)
-                    bounds.setHigh(i, 3.5)
+                    bounds.setLow(i, bounds_xy[i][0])
+                    bounds.setHigh(i, bounds_xy[i][1])
                 else:
                     bounds.setLow(i, bound[0])
                     bounds.setHigh(i, bound[1])
