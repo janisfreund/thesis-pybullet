@@ -16,7 +16,7 @@ egl = pkgutil.get_loader('eglRenderer')
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyCar
+from robots import Car
 
 
 class BoxDemo():
@@ -44,7 +44,7 @@ class BoxDemo():
         robot_id = p.loadURDF("../models/car/car_jeep.urdf")
 
         print("Robot imported")
-        robot = MyCar(robot_id)
+        robot = Car(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
 

@@ -11,8 +11,8 @@ from pybullet_utils import urdfEditor as ed
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyPlanarRobot
-from my_planar_robot import MyMobileArm
+from robots import Roomba
+from robots import MobileArm
 
 from ompl import tools as t
 
@@ -35,7 +35,7 @@ class BoxDemo():
 
         # load robot
         robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
-        robot = MyPlanarRobot(robot_id)
+        robot = Roomba(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
         self.robot = robot
 

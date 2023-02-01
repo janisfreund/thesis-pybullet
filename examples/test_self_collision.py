@@ -9,10 +9,10 @@ import pybullet_data
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyPlanarRobot
-from my_planar_robot import MyMobileArm
-from my_planar_robot import MySmallMobileArm
-from my_planar_robot import MyCar
+from robots import Roomba
+from robots import MobileArm
+from robots import SmallMobileArm
+from robots import Car
 
 
 class BoxDemo():
@@ -28,7 +28,7 @@ class BoxDemo():
         # robot = pb_ompl.PbOMPLRobot(robot_id)
 
         robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
-        robot = MyMobileArm(robot_id)
+        robot = MobileArm(robot_id)
 
         # robot_id = p.loadURDF("../models/mobile_arm/mobile_arm_test.urdf", globalScaling=1.25)
         # robot = pb_ompl.PbOMPLRobot(robot_id)

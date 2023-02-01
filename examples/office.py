@@ -9,7 +9,7 @@ import pybullet_data
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyMobileArm
+from robots import MobileArm
 
 
 class BoxDemo():
@@ -28,7 +28,7 @@ class BoxDemo():
 
         # load robot
         robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0))
-        robot = MyMobileArm(robot_id)
+        robot = MobileArm(robot_id)
         self.robot = robot
 
         # add obstacles
@@ -157,7 +157,7 @@ class BoxDemo():
             robots = []
             for _ in paths:
                 rid = p.loadURDF("../models/mobile_arm/mobile_arm.urdf")
-                r = MyMobileArm(rid)
+                r = MobileArm(rid)
                 robots.append(r)
             drawPath = True
             stepParam = ""

@@ -13,7 +13,7 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
 from pb_ompl import PbOMPLRobot
-from my_planar_robot import MyMobileArm
+from robots import MobileArm
 
 
 class BoxDemo():
@@ -67,7 +67,7 @@ class BoxDemo():
         robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
         print("Robot imported")
         # robot = PbOMPLRobot(robot_id)
-        robot = MyMobileArm(robot_id)
+        robot = MobileArm(robot_id)
         self.robot = robot
 
         # setup pb_ompl

@@ -11,9 +11,9 @@ from pybullet_utils import urdfEditor as ed
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
-from my_planar_robot import MyPlanarRobot
-from my_planar_robot import MyMobileArm
-from my_planar_robot import MySmallMobileArm
+from robots import Roomba
+from robots import MobileArm
+from robots import SmallMobileArm
 
 
 class BoxDemo():
@@ -72,7 +72,7 @@ class BoxDemo():
             ed0.saveUrdf("combined.urdf")
 
         robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
-        robot = MyMobileArm(robot_id)
+        robot = MobileArm(robot_id)
 
         print("Robot imported")
 
@@ -250,7 +250,7 @@ class BoxDemo():
             robots = []
             for _ in paths:
                 rid = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
-                r = MyMobileArm(rid)
+                r = MobileArm(rid)
                 robots.append(r)
             drawPath = True
             stepParam = ""

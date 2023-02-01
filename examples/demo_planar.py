@@ -4,7 +4,7 @@ import math
 import sys
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
-from my_planar_robot import MyPlanarRobot
+from robots import Roomba
 import pb_ompl
 
 class Maze2D():
@@ -17,7 +17,7 @@ class Maze2D():
 
         # load robot
         robot_id = p.loadURDF("../models/planar_robot_4_link.xacro", (0,0,0))
-        robot = MyPlanarRobot(robot_id)
+        robot = Roomba(robot_id)
         self.robot = robot
 
         # setup pb_ompl
