@@ -39,10 +39,13 @@ class CameraStateSampler(ob.RealVectorStateSampler):
 
 
     def sampleUniform(self, state):
-        bounds = self.robot.get_joint_bounds()
+        # bounds = self.robot.get_joint_bounds()
+        bounds = self.si.getStateSpace().getBounds()
         if self.space == "car":
-            state.setX(self.rng_.uniformReal(bounds[0][0], bounds[0][1]))
-            state.setY(self.rng_.uniformReal(bounds[1][0], bounds[1][1]))
+            # state.setX(self.rng_.uniformReal(bounds[0][0], bounds[0][1]))
+            # state.setY(self.rng_.uniformReal(bounds[1][0], bounds[1][1]))
+            state.setX(self.rng_.uniformReal(bounds.low[0], bounds.high[0]))
+            state.setY(self.rng_.uniformReal(bounds.low[1], bounds.high[1]))
             state.setYaw(self.rng_.uniformReal(-math.pi, math.pi))
             if state.getYaw() >= math.pi:
                 state.setYaw(state.getYaw() - math.pi)
@@ -76,8 +79,10 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         else:
             object_idx = world.getStateIdx(world.getStateInt())
 
-        bounds = self.robot.get_joint_bounds()
-        base_pos = [self.rng_.uniformReal(bounds[0][0], bounds[0][1]), self.rng_.uniformReal(bounds[1][0], bounds[1][1])]
+        # bounds = self.robot.get_joint_bounds()
+        bounds = self.si.getStateSpace().getBounds()
+        # base_pos = [self.rng_.uniformReal(bounds[0][0], bounds[0][1]), self.rng_.uniformReal(bounds[1][0], bounds[1][1])]
+        base_pos = [self.rng_.uniformReal(bounds.low[0], bounds.high[0]), self.rng_.uniformReal(bounds.low[1], bounds.high[1])]
         obj_pos = self.poobjects_pos[object_idx]
         # position is directly above base + offset in z direction
         # offset = p.getLinkState(self.robot_id, self.camera_link_id)[4][2]

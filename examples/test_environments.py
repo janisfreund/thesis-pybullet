@@ -38,10 +38,10 @@ class Test:
                 joint_ids.append(p.addUserDebugParameter('Joint ' + str(i), -math.pi, math.pi, 0.))
             elif i == 0:
                 joint_ids.append(
-                    p.addUserDebugParameter('Joint ' + str(i), self.env.bounds[0][0], self.env.bounds[0][1], 0.))
+                    p.addUserDebugParameter('Joint ' + str(i), self.env.bounds[0][0] - 5, self.env.bounds[0][1] + 5, 0.))
             elif i == 1:
                 joint_ids.append(
-                    p.addUserDebugParameter('Joint ' + str(i), self.env.bounds[1][0], self.env.bounds[1][1], 0.))
+                    p.addUserDebugParameter('Joint ' + str(i), self.env.bounds[1][0] - 5, self.env.bounds[1][1] + 5, 0.))
             state.append(0.)
         set_link_id = p.addUserDebugParameter('Camera link ', 0, 30, self.robot.cam_link_id)
         linkid = self.robot.cam_link_id

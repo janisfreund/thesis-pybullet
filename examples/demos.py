@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 6
+DEMO_SELECTION = 7
 
 
 def add_debug_point(pos, radius, color):
@@ -141,6 +141,14 @@ if __name__ == '__main__':
         # simple parking demo
         env = environments.ParkingEnv()
         demo = Demo(env, 30, 1000)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_consecutive()
+
+    elif DEMO_SELECTION == 7:
+        # corner parking demo
+        env = environments.ParkingCornerEnv()
+        demo = Demo(env, 300, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
