@@ -97,6 +97,15 @@ if __name__ == '__main__':
         demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
 
     elif DEMO_SELECTION == 1:
+        # house roomba demo
+        env = environments.RoombaHouseEnv()
+        demo = Demo(env, 200, 1000)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.draw_goal([0, 0, 0, 1])
+        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
+
+    elif DEMO_SELECTION == 2:
         # simple mobile arm demo
         env = environments.MobileArmEnv()
         demo = Demo(env, 20, 1000)
@@ -104,7 +113,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
-    elif DEMO_SELECTION == 2:
+    elif DEMO_SELECTION == 3:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
         demo = Demo(env, 30, 1000)
@@ -112,21 +121,13 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
-    elif DEMO_SELECTION == 3:
+    elif DEMO_SELECTION == 4:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
         demo = Demo(env, 60, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
-
-    elif DEMO_SELECTION == 4:
-        # simple parking demo
-        env = environments.ParkingEnv()
-        demo = Demo(env, 30, 1000)
-        demo.plan()
-        demo.draw_start([0, 0, 0, 1])
-        demo.demo_consecutive()
 
     elif DEMO_SELECTION == 5:
         # search and rescue demo
@@ -137,13 +138,11 @@ if __name__ == '__main__':
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
 
     elif DEMO_SELECTION == 6:
-        # house roomba demo
-        env = environments.RoombaHouseEnv()
-        demo = Demo(env, 200, 1000)
+        # simple parking demo
+        env = environments.ParkingEnv()
+        demo = Demo(env, 30, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
-        demo.draw_goal([0, 0, 0, 1])
-        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
-
+        demo.demo_consecutive()
 
     input("Press Enter to continue...")

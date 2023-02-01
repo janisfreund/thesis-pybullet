@@ -78,6 +78,26 @@ class RoombaEnv(Environment):
         self.add_poobject_box([0.4, 1.5, 0.1], [0.1, 0.8, 0.2], [0., 1., 0., 1.])
 
 
+class RoombaHouseEnv(Environment):
+    def __init__(self):
+        super().__init__()
+
+        office = p.loadURDF("../models/house/house.urdf", useFixedBase=True)
+        self.obstacles.append(office)
+
+        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
+        robot = robots.Roomba(robot_id)
+        self.robot = robot
+
+        self.start = [-5.368, -7.684, 0]
+        self.goal = [-5.368, 3.263, 0]
+
+        self.space_name = "real"
+        self.bounds = [[-7, 7], [-9, 9]]
+
+        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
+
+
 class MobileArmEnv(Environment):
     def __init__(self):
         super().__init__()
@@ -178,6 +198,34 @@ class MobileArmObservationPointEnv(Environment):
         self.add_goal_state([-1.042, 1.124, 1.455, 0, 0.595, 0, 0, 0, 1.422, 0])
 
 
+class SearchAndRescueEnv(Environment):
+    def __init__(self):
+        super().__init__()
+
+        office = p.loadURDF("../models/office/office.urdf", useFixedBase=True)
+        self.obstacles.append(office)
+
+        robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0))
+        robot = robots.MobileArm(robot_id)
+        self.robot = robot
+
+        self.start = [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.goal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        self.space_name = "real"
+        self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
+
+        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
+        self.add_poobject_mesh("../models/dog/dog.urdf", [2.32, -4.74, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
+        self.add_poobject_mesh("../models/dog/dog.urdf", [2.05, 4.42, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
+        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.47, -1.58, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+
+        self.add_goal_state([-4.579, -3.684, -1.356, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+        self.add_goal_state([1.421, -4.684, 0, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+        self.add_goal_state([2, 3.474, 1.554, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+        self.add_goal_state([-3.421, -1.579, 3.142, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+
+
 class ParkingEnv(Environment):
     def __init__(self):
         super().__init__()
@@ -220,49 +268,43 @@ class ParkingEnv(Environment):
         self.add_goal_state([5.5, 0.8, 0.5 * math.pi])
 
 
-class SearchAndRescueEnv(Environment):
+class ParkingCornerEnv(Environment):
     def __init__(self):
         super().__init__()
 
-        office = p.loadURDF("../models/office/office.urdf", useFixedBase=True)
-        self.obstacles.append(office)
+        floor = p.loadURDF("../models/floor/floor.urdf", useFixedBase=True)
+        self.obstacles.append(floor)
 
-        robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0))
-        robot = robots.MobileArm(robot_id)
+        robot_id = p.loadURDF("../models/car/car_jeep.urdf", (0, 0, 0))
+        robot = robots.Car(robot_id)
         self.robot = robot
 
-        self.start = [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.goal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.start = [0, 0, 0]
+        self.goal = [2.5, 0.8, math.radians(90)]
 
-        self.space_name = "real"
-        self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
+        self.space_name = "car"
+        self.bounds = [[-2, 6], [-2, 6]]
 
-        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
-        self.add_poobject_mesh("../models/dog/dog.urdf", [2.32, -4.74, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
-        self.add_poobject_mesh("../models/dog/dog.urdf", [2.05, 4.42, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.47, -1.58, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        # add parking lots
+        self.add_obstacle_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([3, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([2.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([4, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([3.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([5, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([4.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([6, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
+        self.add_obstacle_box([5.5, 1.55, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
+        # add street limits
+        self.add_obstacle_box([3, 2, 0.25], [5, 0.2, 0.25], [0.5, 0.5, 0.5, 1])
+        self.add_obstacle_box([3, -3, 0.25], [5, 0.2, 0.25], [0.5, 0.5, 0.5, 1])
 
-        self.add_goal_state([-4.579, -3.684, -1.356, 0, 0.893, 0, -1.025, 0, 1.918, 0])
-        self.add_goal_state([1.421, -4.684, 0, 0, 0.893, 0, -1.025, 0, 1.918, 0])
-        self.add_goal_state([2, 3.474, 1.554, 0, 0.893, 0, -1.025, 0, 1.918, 0])
-        self.add_goal_state([-3.421, -1.579, 3.142, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [3.5, 0.8, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [4.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 1., 1.])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
 
-
-class RoombaHouseEnv(Environment):
-    def __init__(self):
-        super().__init__()
-
-        office = p.loadURDF("../models/house/house.urdf", useFixedBase=True)
-        self.obstacles.append(office)
-
-        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
-        robot = robots.Roomba(robot_id)
-        self.robot = robot
-
-        self.start = [-5.368, -7.684, 0]
-        self.goal = [-5.368, 3.263, 0]
-
-        self.space_name = "real"
-        self.bounds = [[-7, 7], [-9, 9]]
-
-        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
+        self.add_goal_state([2.5, 0.8, 0.5 * math.pi])
+        self.add_goal_state([3.5, 0.8, 0.5 * math.pi])
+        self.add_goal_state([4.5, 0.8, 0.5 * math.pi])
+        self.add_goal_state([5.5, 0.8, 0.5 * math.pi])

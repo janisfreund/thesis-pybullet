@@ -271,7 +271,7 @@ class PbOMPL():
                 # time.sleep(1)
                 return False
 
-        print("State is valid!")
+        # print("State is valid!")
         return True
 
     # process camera image
@@ -1100,7 +1100,7 @@ class PbOMPL():
     # ------------
 
     def state_to_list(self, state):
-        if self.space_name == "car":
+        if self.space_name == "car" and not isinstance(state, list):
             x = state.getX()
             y = state.getY()
             theta = state.getYaw()
