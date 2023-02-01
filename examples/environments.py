@@ -246,3 +246,23 @@ class SearchAndRescueEnv(Environment):
         self.add_goal_state([1.421, -4.684, 0, 0, 0.893, 0, -1.025, 0, 1.918, 0])
         self.add_goal_state([2, 3.474, 1.554, 0, 0.893, 0, -1.025, 0, 1.918, 0])
         self.add_goal_state([-3.421, -1.579, 3.142, 0, 0.893, 0, -1.025, 0, 1.918, 0])
+
+
+class RoombaHouseEnv(Environment):
+    def __init__(self):
+        super().__init__()
+
+        office = p.loadURDF("../models/house/house.urdf", useFixedBase=True)
+        self.obstacles.append(office)
+
+        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
+        robot = robots.Roomba(robot_id)
+        self.robot = robot
+
+        self.start = [-5.368, -7.684, 0]
+        self.goal = [-5.368, 3.263, 0]
+
+        self.space_name = "real"
+        self.bounds = [[-7, 7], [-9, 9]]
+
+        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])

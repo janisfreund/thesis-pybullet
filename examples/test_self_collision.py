@@ -11,7 +11,6 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 import pb_ompl
 from robots import Roomba
 from robots import MobileArm
-from robots import SmallMobileArm
 from robots import Car
 
 
@@ -27,14 +26,14 @@ class BoxDemo():
         # # robot = MySmallMobileArm(robot_id)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
 
-        robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
-        robot = MobileArm(robot_id)
+        # robot_id = p.loadURDF("../models/mobile_arm/mobile_arm.urdf", (0, 0, 0), globalScaling=1.25)
+        # robot = MobileArm(robot_id)
 
         # robot_id = p.loadURDF("../models/mobile_arm/mobile_arm_test.urdf", globalScaling=1.25)
         # robot = pb_ompl.PbOMPLRobot(robot_id)
 
-        # robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
-        # robot = MyPlanarRobot(robot_id)
+        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
+        robot = Roomba(robot_id)
 
         # robot_id = p.loadURDF("../models/car/car.urdf", globalScaling=2)
         # robot = MyCar(robot_id)
@@ -49,7 +48,8 @@ class BoxDemo():
 
         # office = p.loadSDF("../models/office/office_no_doors.sdf")
 
-        office = p.loadURDF("../models/office/office.urdf", (0, 0, 0), useFixedBase=True)
+        # office = p.loadURDF("../models/office/office.urdf", (0, 0, 0), useFixedBase=True)
+        office = p.loadURDF("../models/house/house.urdf", (0, 0, 0), useFixedBase=True)
         self.obstacles.append(office)
 
         self.add_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
@@ -126,12 +126,12 @@ class BoxDemo():
         print("-----------------------------")
         print("-----------------------------")
 
-        time.sleep(10)
+        # time.sleep(10)
 
         old_x = 0
         old_y = 0
-        x = p.addUserDebugParameter("x", -5, 5, 0)
-        y = p.addUserDebugParameter("y", -5, 5, 0)
+        x = p.addUserDebugParameter("x", -10, 10, 0)
+        y = p.addUserDebugParameter("y", -10, 10, 0)
 
         # for x in np.arange(-5, 5, 0.1):
         #     for y in np.arange(-5, 5, 0.1):

@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 5
+DEMO_SELECTION = 6
 
 
 def add_debug_point(pos, radius, color):
@@ -18,7 +18,7 @@ def add_debug_point(pos, radius, color):
 
 
 class Demo:
-    def __init__(self, env):
+    def __init__(self, env, planning_time, interpolation_num):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -31,7 +31,8 @@ class Demo:
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.env.robot, self.env.obstacles, self.env.poobjects,
                                                 self.env.poobjects_properties,
                                                 self.robot.cam_link_id, self.robot.cam_orientation,
-                                                self.env.goal_states, self.env.space_name, self.env.bounds)
+                                                self.env.goal_states, self.env.space_name, self.env.bounds,
+                                                planning_time, interpolation_num)
 
         self.pb_ompl_interface.set_obstacles(self.env.obstacles)
         self.pb_ompl_interface.set_planner("Partial")
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env)
+        demo = Demo(env, 40, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -98,7 +99,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple mobile arm demo
         env = environments.MobileArmEnv()
-        demo = Demo(env)
+        demo = Demo(env, 20, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 2:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
-        demo = Demo(env)
+        demo = Demo(env, 30, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -114,7 +115,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 3:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env)
+        demo = Demo(env, 60, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 4:
         # simple parking demo
         env = environments.ParkingEnv()
-        demo = Demo(env)
+        demo = Demo(env, 30, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
@@ -130,9 +131,19 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # search and rescue demo
         env = environments.SearchAndRescueEnv()
-        demo = Demo(env)
+        demo = Demo(env, 300, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
+
+    elif DEMO_SELECTION == 6:
+        # house roomba demo
+        env = environments.RoombaHouseEnv()
+        demo = Demo(env, 200, 1000)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.draw_goal([0, 0, 0, 1])
+        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
+
 
     input("Press Enter to continue...")

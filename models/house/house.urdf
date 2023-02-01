@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot name="car">
+    <material name="grey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
+    <link name="base">
+        <visual>
+            <origin rpy="1.5707 0 0" xyz="0 0 0.0"/>
+            <geometry>
+                <mesh scale="1.6 1.6 1.6" filename="package://house/house.obj"/>
+            </geometry>
+            <material name="grey"/>
+        </visual>
+        <collision concave="yes">
+            <origin rpy="1.5707 0 0" xyz="0 0 -0.017"/>
+            <geometry>
+                <mesh scale="1.6 1.6 1.6" filename="package://house/house.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+</robot>

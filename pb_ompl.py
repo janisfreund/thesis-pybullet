@@ -28,9 +28,6 @@ from scipy.spatial.transform import Rotation as R
 
 from examples.camera_state_sampler import CameraStateSampler
 
-INTERPOLATE_NUM = 1000
-DEFAULT_PLANNING_TIME = 40.0
-
 class PbOMPLRobot():
     '''
     To use with Pb_OMPL. You need to construct a instance of this class and pass to PbOMPL.
@@ -146,7 +143,7 @@ class PbCarSpace(ob.ReedsSheppStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real", bounds_xy=[[-1, 1], [-1, 1]], planning_time=30, inter_num=1000) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real", bounds_xy=[[-1, 1], [-1, 1]], planning_time=30, interpolation_num=1000) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -163,6 +160,8 @@ class PbOMPL():
         self.goal_states = goal_states
         self.state_counter = 0
         self.counter = 0
+        self.planning_time = planning_time
+        self.interpolation_num = interpolation_num
         for f in os.listdir('./camera'):
             os.remove(os.path.join('./camera', f))
 
@@ -272,7 +271,7 @@ class PbOMPL():
                 # time.sleep(1)
                 return False
 
-        # print("State is valid!")
+        print("State is valid!")
         return True
 
     # process camera image
@@ -471,7 +470,7 @@ class PbOMPL():
                                                 [prop[-1] for prop in self.poobjects_properties], multiple_objects, self.space_name)
             self.set_state_sampler(camera_sampler)
 
-    def plan_start_goal(self, start, goal, allowed_time = DEFAULT_PLANNING_TIME):#DEFAULT_PLANNING_TIME
+    def plan_start_goal(self, start, goal):
         '''
         plan a path to gaol from the given robot start state
         '''
@@ -498,7 +497,7 @@ class PbOMPL():
         #     print(p.getJointInfo(self.robot.id, id))
 
         # attempt to solve the problem within allowed planning time
-        solved = self.ss.solve(allowed_time)
+        solved = self.ss.solve(self.planning_time)
         res = False
         all_sol_path_lists = []
         self.tree_path_lists = []
@@ -510,7 +509,7 @@ class PbOMPL():
 
             num_solutions = pdef.getSolutionCount()
 
-            max_len = INTERPOLATE_NUM
+            max_len = self.interpolation_num
             print("Found solution: interpolating into {} segments".format(max_len))
 
             lens = []
@@ -563,7 +562,7 @@ class PbOMPL():
         self.robot.set_state(orig_robot_state)
         return res, all_sol_path_lists, self.tree_path_lists
 
-    def set_start_goal(self, start, goal):#DEFAULT_PLANNING_TIME
+    def set_start_goal(self, start, goal):
         '''
         plan a path to gaol from the given robot start state
         '''
@@ -596,22 +595,22 @@ class PbOMPL():
         return path_len
 
 
-    def plan(self, goal, allowed_time = DEFAULT_PLANNING_TIME):
+    def plan(self, goal):
         '''
         plan a path to gaol from current robot state
         '''
         start = self.robot.get_cur_state()
-        return self.plan_start_goal(start, goal, allowed_time=allowed_time)
+        return self.plan_start_goal(start, goal)
 
     def plan_with_simplification(self, goal):
         start = self.robot.get_cur_state()
-        res, all_sol_path_lists, _ = self.plan_start_goal(start, goal, DEFAULT_PLANNING_TIME)
+        res, all_sol_path_lists, _ = self.plan_start_goal(start, goal)
 
         print("Now planing with simplification")
         time.sleep(10)
         self.set_planner("Partial")
         self.planner.setPathOptimization(True)
-        _, all_sol_path_lists_optimized, _ = self.plan_start_goal(start, goal, DEFAULT_PLANNING_TIME)
+        _, all_sol_path_lists_optimized, _ = self.plan_start_goal(start, goal)
 
         return res, all_sol_path_lists, all_sol_path_lists_optimized
 
