@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 7
+DEMO_SELECTION = 5
 
 
 def add_debug_point(pos, radius, color):

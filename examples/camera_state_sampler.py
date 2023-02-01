@@ -50,8 +50,11 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             if state.getYaw() >= math.pi:
                 state.setYaw(state.getYaw() - math.pi)
         else:
-            for i, bound in enumerate(bounds):
-                state[i] = self.rng_.uniformReal(bound[0], bound[1])
+            # for i, bound in enumerate(bounds):
+            #     state[i] = self.rng_.uniformReal(bound[0], bound[1])
+            for i in range(self.robot.num_dim):
+                state[i] = self.rng_.uniformReal(bounds.low[i], bounds.high[i])
+
         return True
 
     def sampleGoodCameraPosition(self, state):
