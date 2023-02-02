@@ -67,7 +67,7 @@ class RoombaEnv(Environment):
         self.goal = [1.5, 1.5, math.radians(0)]
 
         self.space_name = "real"
-        self.bounds = [[-5.5, 3.5], [-5.5, 3.5]]
+        self.bounds = [[-1.7, 1.7], [-1.7, 1.7]]
 
         self.add_obstacle_box([2, 0, 0.1], [0.1, 2, 0.2], [0.8, 0.8, 0.8, 1])
         self.add_obstacle_box([-2, 0, 0.1], [0.1, 2, 0.2], [0.8, 0.8, 0.8, 1])

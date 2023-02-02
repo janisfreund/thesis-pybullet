@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 5
+DEMO_SELECTION = 0
 
 
 def add_debug_point(pos, radius, color):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 40, 1000)
+        demo = Demo(env, 10, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])

@@ -1,8 +1,10 @@
 import math
+import os
 import os.path as osp
 import pybullet as p
 import sys
 import matplotlib.pyplot as plt
+import pickle
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
@@ -20,6 +22,7 @@ def calc_cost(path):
         path_len += math.sqrt(dist)
     return path_len
 
+
 def vector_to_string(vec):
     s = "["
     for v in vec:
@@ -28,6 +31,20 @@ def vector_to_string(vec):
     s = s[0:-2]
     s += "]"
     return s
+
+
+def load_graph(name):
+    path = "./benchmark_data/" + name
+    files = [f for f in os.listdir(path)]
+    axs = []
+    for f in files:
+        axs.append(pickle.load(open(os.path.join(path, f), "rb")))
+    plt.xlabel('run time [s]', fontsize=14)
+    plt.ylabel('solution cost', fontsize=14)
+    plt.title(name, fontsize=16)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 class Benchmark:
@@ -84,25 +101,36 @@ class Benchmark:
         for t in range(min_tme, max_time + 1, time_interval):
             self.plan(t, avg_num, sampler)
 
-    def save_data(self):
-        print("")
-
-    def load_data(self):
-        print("")
-
-    def export_graph(self):
+    def create_graph(self, name, save):
         for i in range(len(self.res)):
             if len(self.res[i]) > 0:
-                plt.plot([c[0] for c in self.res[i]], [c[1] for c in self.res[i]], label=vector_to_string(self.belief_states[i]) + " simplified")
+                ax = plt.plot([c[0] for c in self.res[i]], [c[1] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
+                if save:
+                    path = "./benchmark_data/" + name
+                    try:
+                        os.mkdir(path)
+                    except OSError:
+                        pass
+                    files = [f for f in os.listdir(path)]
+                    for f in files:
+                        os.remove(os.path.join(path, f))
+                    pickle.dump(ax, open(path + "/" + name + "_" + str(i) + ".pickle", "wb"))
+
                 # plt.plot([c[0] for c in self.res[i]], [c[2] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
-        plt.legend() #TODO
+        plt.xlabel('run time [s]', fontsize=14)
+        plt.ylabel('solution cost', fontsize=14)
+        plt.title(name, fontsize=16)
+        plt.legend()
         plt.tight_layout()
         plt.show()
 
 
 if __name__ == '__main__':
-    p.connect(p.GUI)
-    env = environments.RoombaEnv()
-    b = Benchmark(env)
-    b.benchmark(10, 120, 10, 1, "camera")
-    b.export_graph()
+    if False:
+        p.connect(p.GUI)
+        env = environments.RoombaEnv()
+        b = Benchmark(env)
+        b.benchmark(10, 20, 10, 1, "camera")
+        b.create_graph("toy_example_10-20", True)
+    else:
+        load_graph("toy_example_10-20")
