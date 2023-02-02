@@ -99,7 +99,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple roomba demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 500, 1000)
+        demo = Demo(env, 200, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])

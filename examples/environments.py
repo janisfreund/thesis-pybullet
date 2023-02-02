@@ -97,8 +97,8 @@ class RoombaDoorEnv(Environment):
 
         self.add_poobject_mesh("../models/house/door.urdf", [2.4, -3, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/house/door.urdf", [2.4, 3, 0], [0, 0, 0, 1], [0., 1., 0., 1.])
-        self.add_poobject_mesh("../models/house/door.urdf", [-2, -2.6, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/house/door.urdf", [-3, -1.2, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        # self.add_poobject_mesh("../models/house/door.urdf", [-2, -2.6, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
+        # self.add_poobject_mesh("../models/house/door.urdf", [-3, -1.2, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
         # self.add_poobject_mesh("../models/house/door.urdf", [0.2, 0, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
 
 

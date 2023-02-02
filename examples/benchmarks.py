@@ -67,6 +67,9 @@ class Benchmark:
         self.res = []
         for i in range(len(self.belief_states)):
             self.res.append([])
+        self.optimal_cost = []
+        for i in range(len(self.belief_states)):
+            self.optimal_cost.append(0)
 
     def plan(self, planning_time, avg_num, sampler):
         costs = [0] * len(self.belief_states)
@@ -89,21 +92,29 @@ class Benchmark:
 
             for i, path in enumerate(paths):
                 idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
+                print("RES[" + str(idx) + "]: " + str(calc_cost(path)))
                 costs[idx] = (costs[idx] * run + calc_cost(path)) / (run + 1)
                 costs_simplified[idx] = (costs_simplified[idx] * run + calc_cost(
                     pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])) / (run + 1)
+                if self.optimal_cost[idx] == 0:
+                    self.optimal_cost[idx] = calc_cost([paths[i][0], paths[i][-1]])
 
         for i in range(len(self.res)):
             if costs[i] > 0:
                 self.res[i].append([planning_time, costs[i], costs_simplified[i]])
+                print("AVG RES[" + str(i) + "]: " + str(costs[i]))
 
     def benchmark(self, min_tme, max_time, time_interval, avg_num, sampler):
         for t in range(min_tme, max_time + 1, time_interval):
             self.plan(t, avg_num, sampler)
 
     def create_graph(self, name, save):
+        n = 0
         for i in range(len(self.res)):
             if len(self.res[i]) > 0:
+                if n == 0:
+                    ax_opt = plt.plot([c[0] for c in self.res[i]], [self.optimal_cost[i] for _ in self.res[i]],
+                                    color=[0, 0, 0], linestyle='dotted', label='optimal costs')
                 ax = plt.plot([c[0] for c in self.res[i]], [c[1] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
                 if save:
                     path = "./benchmark_data/" + name
@@ -115,7 +126,11 @@ class Benchmark:
                     for f in files:
                         os.remove(os.path.join(path, f))
                     pickle.dump(ax, open(path + "/" + name + "_" + str(i) + ".pickle", "wb"))
+                    if n == 0:
+                        pickle.dump(ax_opt, open(path + "/" + name + "_opt_" + str(i) + ".pickle", "wb"))
+                n += 1
 
+                # non-simplified
                 # plt.plot([c[0] for c in self.res[i]], [c[2] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
         plt.xlabel('run time [s]', fontsize=14)
         plt.ylabel('solution cost', fontsize=14)
@@ -130,7 +145,7 @@ if __name__ == '__main__':
         p.connect(p.GUI)
         env = environments.RoombaEnv()
         b = Benchmark(env)
-        b.benchmark(5, 30, 5, 5, "camera")
-        b.create_graph("toy_example_5-30-5-5", True)
+        b.benchmark(15, 21, 5, 3, "camera")
+        b.create_graph("toy_example_5-10-5-1", True)
     else:
-        load_graph("toy_example_10-20")
+        load_graph("toy_example_5-10-5-1")
