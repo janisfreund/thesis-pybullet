@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 1
+DEMO_SELECTION = 6
 
 
 def add_debug_point(pos, radius, color):
@@ -54,6 +54,8 @@ class Demo:
 
     def demo_parallel(self, model, scale, RobotClass):
         if self.res:
+            for poo in self.env.poobjects:
+                p.setCollisionFilterGroupMask(poo, -1, 0, 0)
             robots = []
             for _ in self.paths:
                 rid = p.loadURDF(model, (self.env.start[0], self.env.start[1], 0), globalScaling=scale)
@@ -64,13 +66,16 @@ class Demo:
             raw_path_param = ""
             sol_line_ids = []
             line_id = []
+            belief_colors = False
+            if self.pb_ompl_interface.mode == 1:
+                belief_colors = True
             while True:
                 stepParam, raw_path_param, sol_line_ids, line_id = self.pb_ompl_interface.execute_all(self.paths,
                                                    drawPath, camera=False, projectionMatrix=self.projectionMatrix,
                                                    linkid=self.robot.cam_link_id,
                                                    camera_orientation=self.robot.cam_orientation, robots=robots,
                                                    stepParam=stepParam, raw_path_param=raw_path_param,
-                                                   sol_line_ids=sol_line_ids, line_id=line_id)
+                                                   sol_line_ids=sol_line_ids, line_id=line_id, belief_colors=belief_colors)
 
     def demo_consecutive(self):
         if self.res:
@@ -99,7 +104,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple roomba demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 200, 1000)
+        demo = Demo(env, 120, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -139,6 +144,14 @@ if __name__ == '__main__':
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
     elif DEMO_SELECTION == 6:
+        # simple search and rescue demo
+        env = environments.SearchAndRescueSimpleEnv()
+        demo = Demo(env, 120, 1000)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
+
+    elif DEMO_SELECTION == 7:
         # search and rescue demo
         env = environments.SearchAndRescueEnv()
         demo = Demo(env, 300, 1000)
@@ -146,7 +159,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
 
-    elif DEMO_SELECTION == 7:
+    elif DEMO_SELECTION == 8:
         # simple parking demo
         env = environments.ParkingEnv()
         demo = Demo(env, 30, 1000)
@@ -154,7 +167,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
 
-    elif DEMO_SELECTION == 8:
+    elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
         demo = Demo(env, 300, 1000)

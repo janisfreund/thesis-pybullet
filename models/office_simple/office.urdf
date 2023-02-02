@@ -6,16 +6,16 @@
 
     <link name="base">
         <visual>
-            <origin rpy="1.5707 0 0" xyz="5 5 0.0"/>
+            <origin rpy="1.5707 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="package://office/office_no_doors.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://office_simple/office.obj"/>
             </geometry>
             <material name="grey"/>
         </visual>
         <collision concave="yes">
-            <origin rpy="1.5707 0 0" xyz="5 5 -0.1"/>
+            <origin rpy="1.5707 0 0" xyz="0 0 -0.017"/>
             <geometry>
-                <mesh filename="package://office/office_no_doors.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://office_simple/office.obj"/>
             </geometry>
         </collision>
     </link>

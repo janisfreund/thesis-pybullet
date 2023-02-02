@@ -194,11 +194,14 @@ class PbOMPL():
 
         if self.space_name == "car":
             self.ss.getProblemDefinition().setMode(2)
+            self.mode = 2
         else:
             if len(self.goal_states) == 0:
                 self.ss.getProblemDefinition().setMode(0)
+                self.mode = 0
             else:
                 self.ss.getProblemDefinition().setMode(1)
+                self.mode = 1
 
         self.si = self.ss.getSpaceInformation()
 
@@ -614,7 +617,7 @@ class PbOMPL():
 
         return res, all_sol_path_lists, all_sol_path_lists_optimized
 
-    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam="", raw_path_param="", sol_line_ids=[], line_id=[]):
+    def execute_all(self, paths, drawPaths, dynamics=False, camera=False, projectionMatrix=None, linkid=0, camera_orientation=[[1], [0], [0]], robots=[], stepParam="", raw_path_param="", sol_line_ids=[], line_id=[], belief_colors=False):
         '''
         Execute a planned plan. Will visualize in pybullet.
         Args:
@@ -623,7 +626,10 @@ class PbOMPL():
                       meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
                       path is collision free, this is somewhat acceptable.
         '''
-        colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0], [0.5,0,0], [0,0.5,0], [0,0,0.5], [0.5,0.5,0], [0.5,0,0.5], [0,0.5,0.5], [0, 0, 0]]
+        if belief_colors:
+            colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0]]
+        else:
+            colors = [[0, 0, 0]]
         po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
         # draw path
         if drawPaths and stepParam == "":

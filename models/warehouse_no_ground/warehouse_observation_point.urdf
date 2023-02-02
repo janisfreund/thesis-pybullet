@@ -6,16 +6,16 @@
 
 	<link name="base">
         <visual>
-			<origin rpy="0 0 0" xyz="0 0 0"/>
+			<origin rpy="1.5707 0 0" xyz="0 0 0"/>
 			<geometry>
-				<mesh filename="../models/warehouse_no_ground/meshes/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
+				<mesh filename="../models/warehouse_no_ground/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
 			</geometry>
 			<material name="grey"/>
 		</visual>
 		<collision concave="yes">
-		    <origin rpy="0 0 0" xyz="0 0 0"/>
+		    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="../models/warehouse_no_ground/meshes/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
+                <mesh filename="../models/warehouse_no_ground/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
             </geometry>
         </collision>
     </link>

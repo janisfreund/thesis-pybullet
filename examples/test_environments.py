@@ -83,6 +83,6 @@ class Test:
 
 if __name__ == '__main__':
     p.connect(p.GUI)
-    env = environments.RoombaDoorEnv()
+    env = environments.SearchAndRescueSimpleEnv()
     test = Test(env)
     test.test()
