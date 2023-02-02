@@ -8,14 +8,14 @@
         <visual>
             <origin rpy="1.5707 0 0" xyz="0 0 0.0"/>
             <geometry>
-                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/floor_plan.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/floor_plan_extended.obj"/>
             </geometry>
             <material name="grey"/>
         </visual>
         <collision concave="yes">
             <origin rpy="1.5707 0 0" xyz="0 0 -0.017"/>
             <geometry>
-                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/floor_plan.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/floor_plan_extended.obj"/>
             </geometry>
         </collision>
     </link>
