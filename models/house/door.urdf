@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="house">
+<robot name="floor_plan">
     <material name="grey">
         <color rgba="0.7 0.7 0.7 1.0"/>
     </material>
@@ -8,14 +8,14 @@
         <visual>
             <origin rpy="1.5707 0 0" xyz="0 0 0.0"/>
             <geometry>
-                <mesh scale="1.6 1.6 1.6" filename="package://house/house.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/door.obj"/>
             </geometry>
             <material name="grey"/>
         </visual>
         <collision concave="yes">
             <origin rpy="1.5707 0 0" xyz="0 0 -0.017"/>
             <geometry>
-                <mesh scale="1.6 1.6 1.6" filename="package://house/house.obj"/>
+                <mesh scale="0.4 0.4 0.4" filename="package://floor_plan/door.obj"/>
             </geometry>
         </collision>
     </link>

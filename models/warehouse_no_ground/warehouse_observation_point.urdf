@@ -1,0 +1,22 @@
+<?xml version="0.0" ?>
+<robot name="warehouse">
+    <material name="grey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+    </material>
+
+	<link name="base">
+        <visual>
+			<origin rpy="0 0 0" xyz="0 0 0"/>
+			<geometry>
+				<mesh filename="../models/warehouse_no_ground/meshes/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
+			</geometry>
+			<material name="grey"/>
+		</visual>
+		<collision concave="yes">
+		    <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="../models/warehouse_no_ground/meshes/warehouse_observation_point.obj" scale="1.00000 1.00000 1.00000"/>
+            </geometry>
+        </collision>
+    </link>
+</robot>

@@ -126,11 +126,11 @@ class Benchmark:
 
 
 if __name__ == '__main__':
-    if False:
+    if True:
         p.connect(p.GUI)
         env = environments.RoombaEnv()
         b = Benchmark(env)
-        b.benchmark(10, 20, 10, 1, "camera")
-        b.create_graph("toy_example_10-20", True)
+        b.benchmark(5, 30, 5, 5, "camera")
+        b.create_graph("toy_example_5-30-5-5", True)
     else:
         load_graph("toy_example_10-20")

@@ -78,6 +78,30 @@ class RoombaEnv(Environment):
         self.add_poobject_box([0.4, 1.5, 0.1], [0.1, 0.8, 0.2], [0., 1., 0., 1.])
 
 
+class RoombaDoorEnv(Environment):
+    def __init__(self):
+        super().__init__()
+
+        floor_plan = p.loadURDF("../models/floor_plan/floor_plan.urdf", useFixedBase=True)
+        self.obstacles.append(floor_plan)
+
+        robot_id = p.loadURDF("../models/create_description/urdf/create_2.urdf", (0, 0, 0))
+        robot = robots.Roomba(robot_id)
+        self.robot = robot
+
+        self.start = [3.32, 3.32, 0]
+        self.goal = [-3.5, -3.5, -1.5707]
+
+        self.space_name = "real"
+        self.bounds = [[-4, 4], [-4, 4]]
+
+        self.add_poobject_mesh("../models/house/door.urdf", [2.4, -3, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
+        self.add_poobject_mesh("../models/house/door.urdf", [2.4, 3, 0], [0, 0, 0, 1], [0., 1., 0., 1.])
+        self.add_poobject_mesh("../models/house/door.urdf", [-2, -2.6, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
+        self.add_poobject_mesh("../models/house/door.urdf", [-3, -1.2, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        # self.add_poobject_mesh("../models/house/door.urdf", [0.2, 0, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
+
+
 class RoombaHouseEnv(Environment):
     def __init__(self):
         super().__init__()
@@ -168,7 +192,7 @@ class MobileArmObservationPointEnv(Environment):
     def __init__(self):
         super().__init__()
 
-        warehouse = p.loadURDF("../models/warehouse_no_ground/model.urdf", useFixedBase=True)
+        warehouse = p.loadURDF("../models/warehouse_no_ground/warehouse_observation_point.urdf", useFixedBase=True)
         floor = p.loadURDF("../models/floor/floor.urdf", useFixedBase=True)
         self.obstacles.append(warehouse)
         self.obstacles.append(floor)

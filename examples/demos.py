@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 0
+DEMO_SELECTION = 1
 
 
 def add_debug_point(pos, radius, color):
@@ -97,6 +97,15 @@ if __name__ == '__main__':
         demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
 
     elif DEMO_SELECTION == 1:
+        # simple roomba demo
+        env = environments.RoombaDoorEnv()
+        demo = Demo(env, 500, 1000)
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.draw_goal([0, 0, 0, 1])
+        demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
+
+    elif DEMO_SELECTION == 2:
         # house roomba demo
         env = environments.RoombaHouseEnv()
         demo = Demo(env, 200, 1000)
@@ -105,7 +114,7 @@ if __name__ == '__main__':
         demo.draw_goal([0, 0, 0, 1])
         demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
 
-    elif DEMO_SELECTION == 2:
+    elif DEMO_SELECTION == 3:
         # simple mobile arm demo
         env = environments.MobileArmEnv()
         demo = Demo(env, 20, 1000)
@@ -113,7 +122,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
-    elif DEMO_SELECTION == 3:
+    elif DEMO_SELECTION == 4:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
         demo = Demo(env, 30, 1000)
@@ -121,7 +130,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
-    elif DEMO_SELECTION == 4:
+    elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
         demo = Demo(env, 60, 1000)
@@ -129,7 +138,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
 
-    elif DEMO_SELECTION == 5:
+    elif DEMO_SELECTION == 6:
         # search and rescue demo
         env = environments.SearchAndRescueEnv()
         demo = Demo(env, 300, 1000)
@@ -137,7 +146,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
 
-    elif DEMO_SELECTION == 6:
+    elif DEMO_SELECTION == 7:
         # simple parking demo
         env = environments.ParkingEnv()
         demo = Demo(env, 30, 1000)
@@ -145,7 +154,7 @@ if __name__ == '__main__':
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
 
-    elif DEMO_SELECTION == 7:
+    elif DEMO_SELECTION == 8:
         # corner parking demo
         env = environments.ParkingCornerEnv()
         demo = Demo(env, 300, 1000)
