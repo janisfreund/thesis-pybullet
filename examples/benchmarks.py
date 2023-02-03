@@ -73,6 +73,7 @@ class Benchmark:
             self.optimal_cost.append(0)
 
     def plan(self, planning_time, avg_num, sampler):
+        successes = 0
         costs = [0] * len(self.belief_states)
         costs_simplified = [0] * len(self.belief_states)
 
@@ -91,6 +92,9 @@ class Benchmark:
             self.robot.set_state(self.env.start)
             res, paths, _ = pb_ompl_interface.plan(self.env.goal)
 
+            if res:
+                successes += 1
+
             for i, path in enumerate(paths):
                 idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
                 # print("RES[" + str(idx) + "]: " + str(calc_cost(path)))
@@ -102,7 +106,7 @@ class Benchmark:
 
         for i in range(len(self.res)):
             if costs[i] > 0:
-                self.res[i].append([planning_time, costs[i], costs_simplified[i]])
+                self.res[i].append([planning_time, costs[i], costs_simplified[i], (successes * 100 / avg_num)])
                 # print("AVG RES[" + str(i) + "]: " + str(costs[i]))
 
     def benchmark(self, min_tme, max_time, time_interval, avg_num, sampler):
@@ -129,45 +133,55 @@ class Benchmark:
 
     def create_graph(self, name, save):
         n = 0
+        num_non_zero = 0
+        for i in range(len(self.res)):
+            if len(self.res[i]) > 0:
+                num_non_zero += 1
+        fig, axes = plt.subplots(2, 1)
         for i in range(len(self.res)):
             if len(self.res[i]) > 0:
                 if n == 0:
-                    ax_opt = plt.plot([c[0] for c in self.res[i]], [self.optimal_cost[i] for _ in self.res[i]],
+                    axes[0].plot([c[0] for c in self.res[i]], [self.optimal_cost[i] for _ in self.res[i]],
                                     color=[0, 0, 0], linestyle='dotted', label='optimal costs')
-                ax = plt.plot([c[0] for c in self.res[i]], [c[1] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
-                if save:
-                    path = "./benchmark_data/" + name
-                    try:
-                        os.mkdir(path)
-                    except OSError:
-                        pass
-                    files = [f for f in os.listdir(path)]
-                    for f in files:
-                        os.remove(os.path.join(path, f))
-                    pickle.dump(ax, open(path + "/" + name + "_" + str(i) + ".pickle", "wb"))
-                    if n == 0:
-                        pickle.dump(ax_opt, open(path + "/" + name + "_opt_" + str(i) + ".pickle", "wb"))
+                axes[0].plot([c[0] for c in self.res[i]], [c[1] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
+                axes[1].plot([c[0] for c in self.res[i]], [c[3] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
                 n += 1
+        if save:
+            path = "./benchmark_data/" + name
+            try:
+                os.mkdir(path)
+            except OSError:
+                pass
+            files = [f for f in os.listdir(path)]
+            for f in files:
+                os.remove(os.path.join(path, f))
+            pickle.dump(fig, open(path + "/" + name + "_" + str(i) + ".pickle", "wb"))
 
                 # non-simplified
                 # plt.plot([c[0] for c in self.res[i]], [c[2] for c in self.res[i]], label=vector_to_string(self.belief_states[i]))
-        plt.xlabel('run time [s]', fontsize=14)
-        plt.ylabel('solution cost', fontsize=14)
+        axes[0].set_xlabel('run time [s]', fontsize=14)
+        axes[0].set_ylabel('solution cost', fontsize=14)
+        # axes[0].set_title(name, fontsize=16)
+        axes[0].legend()
+        axes[1].set_xlabel('run time [s]', fontsize=14)
+        axes[1].set_ylabel('success [%]', fontsize=14)
+        # axes[1].set_title(name, fontsize=16)
         plt.title(name, fontsize=16)
-        plt.legend()
-        plt.tight_layout()
+        axes[1].legend()
+        # fig.legend()
+        fig.tight_layout()
         plt.show()
 
 
 if __name__ == '__main__':
     if True:
         p.connect(p.GUI)
-        env = environments.RoombaEnv()
+        env = environments.RoombaDoorEnv()
         b = Benchmark(env)
         devnull = open('/dev/null', 'w')
         oldstdout_fno = os.dup(sys.stdout.fileno())
         os.dup2(devnull.fileno(), 1)
-        b.benchmark(10, 30, 10, 1, "camera")
-        b.create_graph("roomba_simple_5-10-5-1", True)
+        b.benchmark(30, 120, 30, 5, "camera")
+        b.create_graph("roomba_door_30-120-30-5", True)
     else:
         load_graph("toy_example_5-10-5-1")
