@@ -852,7 +852,7 @@ class PbOMPL():
                     #     p.addUserDebugPoints(pointPositions=[[q[i][0], q[i][1], 0]], pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
                     if text_ids[i] != None:
                         p.removeUserDebugItem(text_ids[i])
-                    text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
+                    # text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
                     if i == 0 and camera:
                         # shape = p.getVisualShapeData(self.robot.id)
                         # p.getAxisAngleFromQuaternion(self.robot.id)
@@ -897,9 +897,7 @@ class PbOMPL():
                       meaning that the simulator will simply reset robot's state WITHOUT any dynamics simulation. Since the
                       path is collision free, this is somewhat acceptable.
         '''
-        colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0.5, 0, 0], [0, 0.5, 0], [0, 0, 0.5], [0.5, 0.5, 0],
-                  [0.5, 0, 0.5], [0, 0.5, 0.5]]
-        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
+        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0.5, 0, 0.5, 1]]
         # draw path
         # if drawPaths:
         #     for i in range(self.ss.getProblemDefinition().getSolutionCount()):

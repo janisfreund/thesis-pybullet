@@ -9,18 +9,18 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 1
+DEMO_SELECTION = 9
 """
 0: Roomba simple
-1: Roomba doors
+1: Roomba doors <-
 2: Roomba house
 3: Mobile arm simple
-4: Mobile arm hard
-5: Mobile arm observation point
-6: Search and rescue simple
+4: Mobile arm hard <-
+5: Mobile arm observation point <-
+6: Search and rescue simple <-
 7: Search and rescue office
 8: Parking simple
-9: Parking corner
+9: Parking corner <-
 """
 
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple door demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 120, 1000)
+        demo = Demo(env, 200, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 4:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
-        demo = Demo(env, 30, 1000)
+        demo = Demo(env, 200, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env, 60, 1000)
+        demo = Demo(env, 200, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 6:
         # simple search and rescue demo
         env = environments.SearchAndRescueSimpleEnv()
-        demo = Demo(env, 180, 1000)
+        demo = Demo(env, 200, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
