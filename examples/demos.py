@@ -9,7 +9,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 1
+DEMO_SELECTION = 9
 
 
 def add_debug_point(pos, radius, color):
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 6:
         # simple search and rescue demo
         env = environments.SearchAndRescueSimpleEnv()
-        demo = Demo(env, 120, 1000)
+        demo = Demo(env, 180, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)

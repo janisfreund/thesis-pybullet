@@ -244,7 +244,7 @@ class SearchAndRescueSimpleEnv(Environment):
         self.add_poobject_mesh("../models/dog/dog.urdf", [-2.1, 1.8, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/dog/dog.urdf", [-3.5, 1, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
         self.add_poobject_mesh("../models/dog/dog.urdf", [-3, -3.6, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/dog/dog.urdf", [1.2, -1.3, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        self.add_poobject_mesh("../models/dog/dog.urdf", [1.2, -1.3, 0], [0, 0, 1, 1], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([-2.874, 1.879, 0, 0, 0.893, 0, -1.025, 0, 1.918, 0])
         self.add_goal_state([-2.763, 0.442, 2.348, 0, 0.694, 0, -1.025, 0, 1.918, 0])

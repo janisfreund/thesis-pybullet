@@ -318,10 +318,10 @@ class PbOMPL():
             renderer=p.ER_BULLET_HARDWARE_OPENGL)
 
         # expect target to be green and only green object in scene
-        target_mask_green = cv2.inRange(rgbImg, (0, 1, 0, 0), (50, 255, 50, 255))
-        target_mask_red = cv2.inRange(rgbImg, (1, 0, 0, 0), (255, 50, 50, 255))
-        target_mask_blue = cv2.inRange(rgbImg, (0, 0, 1, 0), (50, 50, 255, 255))
-        target_mask_black = cv2.inRange(rgbImg, (0, 0, 0, 0), (50, 50, 50, 255))
+        target_mask_green = cv2.inRange(rgbImg, (0, 100, 0, 0), (10, 255, 10, 255))
+        target_mask_red = cv2.inRange(rgbImg, (100, 0, 0, 0), (255, 10, 10, 255))
+        target_mask_blue = cv2.inRange(rgbImg, (0, 0, 100, 0), (10, 10, 255, 255))
+        target_mask_purple = cv2.inRange(rgbImg, (80, 0, 80, 0), (180, 10, 180, 255))
 
 
         # print('State: {}'.format(self.state_counter))
@@ -336,7 +336,7 @@ class PbOMPL():
             visible_objects.append(1)
         elif cv2.countNonZero(target_mask_blue) > 0 and len(self.poobjects) > 2:
             visible_objects.append(2)
-        elif cv2.countNonZero(target_mask_black) > 0 and len(self.poobjects) > 3:
+        elif cv2.countNonZero(target_mask_purple) > 0 and len(self.poobjects) > 3:
             visible_objects.append(3)
 
         # camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
@@ -627,10 +627,10 @@ class PbOMPL():
                       path is collision free, this is somewhat acceptable.
         '''
         if belief_colors:
-            colors = [[1,0,0], [0,1,0], [0,0,1], [0,0,0]]
+            colors = [[1,0,0], [0,1,0], [0,0,1], [0.5,0,0.5]]
         else:
             colors = [[0, 0, 0]]
-        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]]
+        po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0.5, 0, 0.5, 1]]
         # draw path
         if drawPaths and stepParam == "":
             for i in range(self.ss.getProblemDefinition().getSolutionCount()):
@@ -729,7 +729,7 @@ class PbOMPL():
                                     sol_line_ids.append(p.addUserDebugLine(
                                         [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
                                         [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
-                                        lineColorRGB=[1, 0.72, 0], lineWidth=15))
+                                        lineColorRGB=[0, 0, 0], lineWidth=15))
                                 else:
                                     sol_line_ids.append(
                                         p.addUserDebugLine(
@@ -796,7 +796,7 @@ class PbOMPL():
                                                 [self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
                                                 [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1],
                                                  0],
-                                                lineColorRGB=[1, 0.72, 0], lineWidth=15))
+                                                lineColorRGB=[0, 0, 0], lineWidth=15))
                                         else:
                                             sol_line_ids.append(
                                                 p.addUserDebugLine(
