@@ -9,7 +9,19 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 9
+DEMO_SELECTION = 1
+"""
+0: Roomba simple
+1: Roomba doors
+2: Roomba house
+3: Mobile arm simple
+4: Mobile arm hard
+5: Mobile arm observation point
+6: Search and rescue simple
+7: Search and rescue office
+8: Parking simple
+9: Parking corner
+"""
 
 
 def add_debug_point(pos, radius, color):
@@ -102,7 +114,7 @@ if __name__ == '__main__':
         demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
 
     elif DEMO_SELECTION == 1:
-        # simple roomba demo
+        # simple door demo
         env = environments.RoombaDoorEnv()
         demo = Demo(env, 120, 1000)
         demo.plan()

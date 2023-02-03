@@ -146,7 +146,7 @@ class MobileArmEnv(Environment):
         self.add_poobject_box([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_poobject_box([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
         self.add_poobject_box([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
-        self.add_poobject_box([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
+        self.add_poobject_box([3, -4, 1.1], [0.05, 0.05, 0.05], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([2.844, 1.124, 1.455, 0, 0.595, 0, 0, 0, 1.422, 0])
         self.add_goal_state([-3.042, 1.124, 1.455, 0, 0.595, 0, 0, 0, 1.422, 0])
@@ -182,7 +182,7 @@ class MobileArmHardEnv(Environment):
         self.add_poobject_box([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_poobject_box([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
         self.add_poobject_box([-3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 1., 1.])
-        self.add_poobject_box([3, -4, 1.1], [0.05, 0.05, 0.05], [0., 0., 0., 1.])
+        self.add_poobject_box([3, -4, 1.1], [0.05, 0.05, 0.05], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([2.844, 1.124, 1.455, 0, 0.595, 0, 0, 0, 1.422, 0])
         self.add_goal_state([-3.042, 1.124, 1.455, 0, 0.595, 0, 0, 0, 1.422, 0])
@@ -272,7 +272,7 @@ class SearchAndRescueEnv(Environment):
         self.add_poobject_mesh("../models/dog/dog.urdf", [-4.32, -4.54, 0], [0, 0, 0, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/dog/dog.urdf", [2.32, -4.74, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
         self.add_poobject_mesh("../models/dog/dog.urdf", [2.05, 4.42, 0], [0, 0, 0, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.47, -1.58, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        self.add_poobject_mesh("../models/dog/dog.urdf", [-4.47, -1.58, 0], [0, 0, 1, 1], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([-4.579, -3.684, -1.356, 0, 0.893, 0, -1.025, 0, 1.918, 0])
         self.add_goal_state([1.421, -4.684, 0, 0, 0.893, 0, -1.025, 0, 1.918, 0])
@@ -314,7 +314,7 @@ class ParkingEnv(Environment):
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [3.5, 0.8, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [4.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 0., 1.])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([2.5, 0.8, 0.5 * math.pi])
         self.add_goal_state([3.5, 0.8, 0.5 * math.pi])
@@ -361,7 +361,7 @@ class ParkingCornerEnv(Environment):
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [3.5, 0.8, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [8, -5, 0], [0, 0, -1, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [8, -7, 0], [0, 0, -1, 1], [0., 0., 0., 1.])
+        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [8, -7, 0], [0, 0, -1, 1], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([2.5, 0.8, 0.5 * math.pi])
         self.add_goal_state([3.5, 0.8, 0.5 * math.pi])
