@@ -5,6 +5,7 @@ import pybullet as p
 import sys
 import matplotlib.pyplot as plt
 import pickle
+import progressbar
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
@@ -92,7 +93,7 @@ class Benchmark:
 
             for i, path in enumerate(paths):
                 idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
-                print("RES[" + str(idx) + "]: " + str(calc_cost(path)))
+                # print("RES[" + str(idx) + "]: " + str(calc_cost(path)))
                 costs[idx] = (costs[idx] * run + calc_cost(path)) / (run + 1)
                 costs_simplified[idx] = (costs_simplified[idx] * run + calc_cost(
                     pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])) / (run + 1)
@@ -102,11 +103,29 @@ class Benchmark:
         for i in range(len(self.res)):
             if costs[i] > 0:
                 self.res[i].append([planning_time, costs[i], costs_simplified[i]])
-                print("AVG RES[" + str(i) + "]: " + str(costs[i]))
+                # print("AVG RES[" + str(i) + "]: " + str(costs[i]))
 
     def benchmark(self, min_tme, max_time, time_interval, avg_num, sampler):
+        widgets = [' [',
+                   progressbar.Timer(format='elapsed time: %(elapsed)s'),
+                   '] ',
+                   progressbar.Bar('*'), ' (',
+                   progressbar.ETA(), ') ',
+                   ]
+
+        bar = progressbar.ProgressBar(max_value=1000,
+                                      widgets=widgets).start()
+
+        t_total = 0
+        for t in range(min_tme, max_time + 1, time_interval):
+            t_total += (t * avg_num)
+        multiplier = 1000 / t_total
+
+        t_elapsed = 0
         for t in range(min_tme, max_time + 1, time_interval):
             self.plan(t, avg_num, sampler)
+            t_elapsed += (t * avg_num)
+            bar.update(int(t_elapsed * multiplier))
 
     def create_graph(self, name, save):
         n = 0
@@ -145,7 +164,10 @@ if __name__ == '__main__':
         p.connect(p.GUI)
         env = environments.RoombaEnv()
         b = Benchmark(env)
-        b.benchmark(15, 21, 5, 3, "camera")
-        b.create_graph("toy_example_5-10-5-1", True)
+        devnull = open('/dev/null', 'w')
+        oldstdout_fno = os.dup(sys.stdout.fileno())
+        os.dup2(devnull.fileno(), 1)
+        b.benchmark(10, 30, 10, 1, "camera")
+        b.create_graph("roomba_simple_5-10-5-1", True)
     else:
         load_graph("toy_example_5-10-5-1")
