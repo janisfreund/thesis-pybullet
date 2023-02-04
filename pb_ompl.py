@@ -237,6 +237,9 @@ class PbOMPL():
     def remove_obstacles(self, obstacle_id):
         self.obstacles.remove(obstacle_id)
 
+    def set_iteration_termination_condition(self, num_iterations):
+        self.termination_condition = ob.IterationTerminationCondition(num_iterations)
+
     def is_state_valid(self, state, world):
         self.counter += 1
 
@@ -465,12 +468,12 @@ class PbOMPL():
         self.ss.setPlanner(self.planner)
 
 
-    def set_state_sampler_name(self, sampler_name):
+    def set_state_sampler_name(self, sampler_name, seed=-1):
         if sampler_name == "camera":
             multiple_objects = (self.space_name == "car" or len(self.goal_states) == 0)
             _, _, zstate = p.getLinkState(self.robot.id, self.camera_link)[4]
             camera_sampler = CameraStateSampler(self.si, zstate, self.camera_link, self.robot,
-                                                [prop[-1] for prop in self.poobjects_properties], multiple_objects, self.space_name)
+                                                [prop[-1] for prop in self.poobjects_properties], multiple_objects, self.space_name, seed)
             self.set_state_sampler(camera_sampler)
 
     def plan_start_goal(self, start, goal):

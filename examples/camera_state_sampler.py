@@ -22,13 +22,11 @@ from scipy.spatial.transform import Rotation as R
 import time
 
 class CameraStateSampler(ob.RealVectorStateSampler):
-    def __init__(self, si, base_offset, camera_link_id, robot, poobjects_pos, multiple_objects, space):
+    def __init__(self, si, base_offset, camera_link_id, robot, poobjects_pos, multiple_objects, space, seed=-1):
         super().__init__(si.getStateSpace())
         self.si = si
         self.name_ = "Camera State Sampler"
         self.rng_ = ou.RNG()
-        # self.rng_.setSeed(0)
-        # self.rng_.setLocalSeed(0)
         self.base_offset = base_offset
         self.camera_link_id = camera_link_id
         self.robot = robot
@@ -36,6 +34,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         self.poobjects_pos = poobjects_pos
         self.multiple_objects = multiple_objects
         self.space = space
+        if seed != -1:
+            self.rng_.setLocalSeed(seed)
 
 
     def sampleUniform(self, state):
