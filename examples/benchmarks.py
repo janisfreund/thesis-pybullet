@@ -16,6 +16,11 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 import pb_ompl
 import environments
 
+T_START = 5
+T_END = 100
+T_STEP = 40
+NUM_PARALLEL = 3
+
 
 def calc_cost(path):
     path_len = 0
@@ -145,7 +150,7 @@ class Benchmark:
         for t in range(min_tme, max_time + 1, time_interval):
             for seed in range(1, self.num_parallel + 1):
                 # self.plan(t, seed, sampler)
-                self.plan_dummy(t, seed, sampler)
+                self.plan(t, seed, sampler)
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
 
@@ -211,13 +216,13 @@ if __name__ == '__main__':
     if True:
         p.connect(p.GUI)
         env = environments.RoombaEnv()
-        b = Benchmark(env, 3)
+        b = Benchmark(env, NUM_PARALLEL)
         devnull = open('/dev/null', 'w')
         oldstdout_fno = os.dup(sys.stdout.fileno())
         os.dup2(devnull.fileno(), 1)
-        b.benchmark(10, 120, 30, "default")
+        b.benchmark(T_START, T_END, T_STEP, "default")
         b.reset()
-        b.benchmark(10, 120, 30, "camera")
-        b.create_graph("test", True)
+        b.benchmark(T_START, T_END, T_STEP, "camera")
+        b.create_graph("roomba_simple_" + str(T_START) + "-" + str(T_END) + "-" + str(T_STEP) + "-" + str(NUM_PARALLEL), True)
     else:
         load_graph("test")
