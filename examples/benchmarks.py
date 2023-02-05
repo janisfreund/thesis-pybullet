@@ -4,6 +4,8 @@ import os.path as osp
 import pybullet as p
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+print(fm.get_font_names())
 import pickle
 import progressbar
 import numpy as np
@@ -39,14 +41,18 @@ def vector_to_string(vec):
 def load_graph(name):
     path = "./benchmark_data/" + name
     files = [f for f in os.listdir(path)]
-    axs = []
-    for f in files:
-        axs.append(pickle.load(open(os.path.join(path, f), "rb")))
-    plt.xlabel('run time [s]', fontsize=14)
-    plt.ylabel('solution cost', fontsize=14)
-    plt.title(name, fontsize=16)
-    plt.legend()
-    plt.tight_layout()
+    fig = (pickle.load(open(os.path.join(path, files[0]), "rb")))
+    axes = fig.get_axes()
+    axes[0].set_xlabel('run time [s]', fontsize=14)
+    axes[0].set_ylabel('solution cost', fontsize=14)
+    axes[0].legend()
+    axes[1].set_xlabel('run time [s]', fontsize=14)
+    axes[1].set_ylabel('success [%]', fontsize=14)
+    axes[1].legend()
+    fig.tight_layout()
+
+    # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
+    plt.subplots_adjust(hspace=0.3)
     plt.show()
 
 
@@ -170,7 +176,7 @@ class Benchmark:
             self.res_avg.append([])
 
     def create_graph(self, name, save):
-        fig, axes = plt.subplots(2, 1)
+        fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
         axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
         axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
         axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
@@ -193,8 +199,11 @@ class Benchmark:
         axes[1].set_ylabel('success [%]', fontsize=14)
         # axes[1].set_title(name, fontsize=16)
         axes[1].legend()
-        plt.title(name, fontsize=16)
         fig.tight_layout()
+
+        # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
+        plt.subplots_adjust(hspace=0.3)
+        plt.savefig(path + "/" + name + ".png")
         plt.show()
 
 
