@@ -2,6 +2,7 @@ import os.path as osp
 import time
 import pybullet as p
 import sys
+import math
 
 from os.path import abspath, dirname, join
 sys.path.insert(0, join(dirname(dirname(abspath(__file__))), '../thesis-ompl/ompl/py-bindings'))
@@ -31,6 +32,17 @@ DEMO_SELECTION = 0
 def add_debug_point(pos, radius, color):
     visBoxId = p.createVisualShape(p.GEOM_CYLINDER, radius=radius, length=0.01, rgbaColor=color)
     return p.createMultiBody(baseMass=0, baseVisualShapeIndex=visBoxId, basePosition=[pos[0], pos[1], 0.005])
+
+
+def calc_cost(path):
+    path_len = 0
+    for i in range(len(path) - 1):
+        dist = 0
+        for n in range(2):
+            diff = path[i][n] - path[i + 1][n]
+            dist += diff * diff
+        path_len += math.sqrt(dist)
+    return path_len
 
 
 class Demo:
@@ -76,6 +88,18 @@ class Demo:
         # draw goal position
         add_debug_point([self.env.goal[0], self.env.goal[1], 0], 0.1, color)
 
+    def print_costs(self):
+        print("\nPath costs:")
+        costs = 0
+        for i, p in enumerate(self.paths):
+            belief_idx = self.pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
+            prob = self.pb_ompl_interface.si.getWorld().getBeliefStateProbability(belief_idx)
+            non_simplified_path = self.pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i]
+            c = calc_cost(non_simplified_path)
+            costs += c * prob
+            print(str(c) + " * " + str(prob))
+        print("Costs: " + str(costs) + "\n")
+
     def demo_parallel(self, model, scale, RobotClass):
         if self.res:
             for poo in self.env.poobjects:
@@ -119,10 +143,11 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 80, True, 1000)
+        demo = Demo(env, 10, True, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
+        demo.print_costs()
         demo.demo_parallel("../models/create_description/urdf/create_2.urdf", 1, rb.Roomba)
 
     elif DEMO_SELECTION == 1:

@@ -17,9 +17,9 @@ import pb_ompl
 import environments
 
 T_START = 5
-T_END = 100
-T_STEP = 40
-NUM_PARALLEL = 3
+T_END = 15
+T_STEP = 5
+NUM_PARALLEL = 2
 
 
 def calc_cost(path):
@@ -123,6 +123,8 @@ class Benchmark:
         for i in range(len(self.res[seed-1])):
             if costs[i] > 0:
                 self.res[seed-1][i].append([planning_time, costs[i], costs_simplified[i]])
+            else:
+                self.res[seed-1][i].append([np.nan, np.nan, np.nan])
         self.success[seed-1].append([planning_time, res])
 
     def plan_dummy(self, planning_time, seed, sampler):
@@ -154,16 +156,26 @@ class Benchmark:
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
 
-        self.res_avg = np.mean(self.res, axis=0)
+        self.res_avg = np.nanmean(self.res, axis=0)
         self.success_avg.append(np.mean(self.success, axis=0))
+
+        self.res_avg[np.isnan(self.res_avg)] = 0
 
         res_ = []
         for i, r in enumerate(self.res_avg):
             if i == 0:
-                res_ = r
+                for n in range(len(r)):
+                    r[n, 0] = self.success_avg[i][n][0]
+                res_ = r * self.world.getBeliefStateProbability(i)
             else:
                 r[:, 0] = 0
                 res_ = np.add(res_, r * self.world.getBeliefStateProbability(i))
+        idx = 0
+        for i, s in enumerate(self.success_avg[-1]):
+            if s[1] > 0:
+                idx = i
+                break
+        res_ = res_[idx:]
         self.res_final.append(res_)
 
     def reset(self):
@@ -181,11 +193,20 @@ class Benchmark:
             self.res_avg.append([])
 
     def create_graph(self, name, save):
-        fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
+        # fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
+        # axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
+        # axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
+        # axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
+        # axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+
+        fig, axes = plt.subplots(3, 1, figsize=(8, 12), dpi=300)
         axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
-        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
+        axes[1].plot([c[0] for c in self.res_final[0]], [c[2] for c in self.res_final[0]], label="default")
+        axes[2].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
         axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
-        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+        axes[1].plot([c[0] for c in self.res_final[1]], [c[2] for c in self.res_final[1]], label="camera")
+        axes[2].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+
         if save:
             path = "./benchmark_data/" + name
             try:

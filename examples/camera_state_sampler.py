@@ -139,7 +139,7 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             for i, joint_pos in enumerate(inv):
                 state[3 + i] = joint_pos
 
-        print("Sampled camera pos.")
+        # print("Sampled camera pos.")
 
         # debugging
         if False:
@@ -245,7 +245,7 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             for i, joint_pos in enumerate(inv):
                 state[3 + i] = joint_pos
 
-        print("Sampled camera pos.")
+        # print("Sampled camera pos.")
 
         # debugging
         if False:
