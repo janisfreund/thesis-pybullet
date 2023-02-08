@@ -17,9 +17,9 @@ import pb_ompl
 import environments
 
 T_START = 5
-T_END = 15
+T_END = 30
 T_STEP = 5
-NUM_PARALLEL = 2
+NUM_PARALLEL = 10
 
 
 def calc_cost(path):
@@ -83,22 +83,16 @@ class Benchmark:
         self.res = []
         for i in range(num_parallel):
             self.res.append([])
-            for _ in range(len(self.belief_states)):
-                self.res[i].append([])
         self.success = []
         for i in range(num_parallel):
             self.success.append([])
 
         self.res_avg = []
-        for _ in range(len(self.belief_states)):
-            self.res_avg.append([])
-
-        self.res_final = []
         self.success_avg = []
 
     def plan(self, planning_time, seed, sampler):
-        costs = [0] * len(self.belief_states)
-        costs_simplified = [0] * len(self.belief_states)
+        costs = 0
+        costs_non_simplified = 0
 
         pb_ompl_interface = pb_ompl.PbOMPL(self.env.robot, self.env.obstacles, self.env.poobjects,
                                                 self.env.poobjects_properties,
@@ -115,22 +109,19 @@ class Benchmark:
         self.robot.set_state(self.env.start)
         res, paths, _ = pb_ompl_interface.plan(self.env.goal)
 
+        print("\nPath costs:")
         for i, path in enumerate(paths):
-            idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
-            costs[idx] = calc_cost(path)
-            costs_simplified[idx] = calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])
-
-        for i in range(len(self.res[seed-1])):
-            if costs[i] > 0:
-                self.res[seed-1][i].append([planning_time, costs[i], costs_simplified[i]])
-            else:
-                self.res[seed-1][i].append([np.nan, np.nan, np.nan])
+            belief_idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
+            prob = pb_ompl_interface.si.getWorld().getBeliefStateProbability(belief_idx)
+            costs += calc_cost(path) * prob
+            costs_non_simplified += calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i]) * prob
+            print(str(calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])) + " * " + str(prob))
+        if costs > 0:
+            self.res[seed-1].append([planning_time, costs, costs_non_simplified])
+            print("Costs: " + str(costs_non_simplified))
+        else:
+            self.res[seed-1].append([np.nan, np.nan, np.nan])
         self.success[seed-1].append([planning_time, res])
-
-    def plan_dummy(self, planning_time, seed, sampler):
-        for i in range(len(self.res[seed-1])):
-            self.res[seed-1][i].append([planning_time, random.randint(0,9), random.randint(0,9)])
-        self.success[seed-1].append([planning_time, random.randint(0,1)])
 
     def benchmark(self, min_tme, max_time, time_interval, sampler):
         widgets = [' [',
@@ -156,56 +147,47 @@ class Benchmark:
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
 
-        self.res_avg = np.nanmean(self.res, axis=0)
         self.success_avg.append(np.mean(self.success, axis=0))
+        del_idx = []
+        for i in range(len(self.res[0])):
+            all_none = True
+            for n in range(len(self.res)):
+                if not np.isnan(self.res[n][i][0]):
+                    all_none = False
+                    break
+            if all_none:
+                del_idx.append(i)
+        self.res = np.delete(self.res, del_idx, axis=1)
 
-        self.res_avg[np.isnan(self.res_avg)] = 0
+        m = np.nanmean(self.res, axis=0)
+        if len(self.res[0]) > 0:
+            self.res_avg.append(np.nanmean(self.res, axis=0))
+        else:
+            self.res_avg.append([[0, 0, 0]])
 
-        res_ = []
-        for i, r in enumerate(self.res_avg):
-            if i == 0:
-                for n in range(len(r)):
-                    r[n, 0] = self.success_avg[i][n][0]
-                res_ = r * self.world.getBeliefStateProbability(i)
-            else:
-                r[:, 0] = 0
-                res_ = np.add(res_, r * self.world.getBeliefStateProbability(i))
-        idx = 0
-        for i, s in enumerate(self.success_avg[-1]):
-            if s[1] > 0:
-                idx = i
-                break
-        res_ = res_[idx:]
-        self.res_final.append(res_)
 
     def reset(self):
         self.res = []
         for i in range(self.num_parallel):
             self.res.append([])
-            for _ in range(len(self.belief_states)):
-                self.res[i].append([])
         self.success = []
         for i in range(self.num_parallel):
             self.success.append([])
 
-        self.res_avg = []
-        for _ in range(len(self.belief_states)):
-            self.res_avg.append([])
-
     def create_graph(self, name, save):
-        # fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
-        # axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
-        # axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
-        # axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
+        fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
+        axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default")
+        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
+        # axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
         # axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
 
-        fig, axes = plt.subplots(3, 1, figsize=(8, 12), dpi=300)
-        axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
-        axes[1].plot([c[0] for c in self.res_final[0]], [c[2] for c in self.res_final[0]], label="default")
-        axes[2].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
-        axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
-        axes[1].plot([c[0] for c in self.res_final[1]], [c[2] for c in self.res_final[1]], label="camera")
-        axes[2].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+        # fig, axes = plt.subplots(3, 1, figsize=(8, 12), dpi=300)
+        # axes[0].plot([c[0] for c in self.res_final[0]], [c[1] for c in self.res_final[0]], label="default")
+        # axes[1].plot([c[0] for c in self.res_final[0]], [c[2] for c in self.res_final[0]], label="default")
+        # axes[2].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
+        # axes[0].plot([c[0] for c in self.res_final[1]], [c[1] for c in self.res_final[1]], label="camera")
+        # axes[1].plot([c[0] for c in self.res_final[1]], [c[2] for c in self.res_final[1]], label="camera")
+        # axes[2].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
 
         if save:
             path = "./benchmark_data/" + name

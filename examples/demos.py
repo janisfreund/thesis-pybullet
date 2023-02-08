@@ -14,7 +14,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 0
+DEMO_SELECTION = 1
 """
 0: Roomba simple
 1: Roomba doors <-
