@@ -14,7 +14,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 1
+DEMO_SELECTION = 0
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -43,6 +43,16 @@ def calc_cost(path):
             dist += diff * diff
         path_len += math.sqrt(dist)
     return path_len
+
+
+def path_to_list(path):
+    l = []
+    for i in range(len(path)):
+        pl = []
+        for n in range(len(path[i])):
+            pl.append([path[i][n][0], path[i][n][1]])
+        l.append(pl)
+    return l
 
 
 class Demo:
@@ -98,7 +108,8 @@ class Demo:
             c = calc_cost(non_simplified_path)
             costs += c * prob
             print(str(c) + " * " + str(prob))
-        print("Costs: " + str(costs) + "\n")
+        print("Costs: " + str(costs))
+        print("Costs given by planner: " + str(self.pb_ompl_interface.ss.getProblemDefinition().getSolutionCost()) + "\n")
 
     def demo_parallel(self, model, scale, RobotClass):
         if self.res:
@@ -143,7 +154,7 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 10, True, 1000, seed=1)
+        demo = Demo(env, 10, True, 1000, seed=8)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])

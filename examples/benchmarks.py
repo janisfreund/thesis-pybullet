@@ -116,8 +116,9 @@ class Benchmark:
             costs += calc_cost(path) * prob
             costs_non_simplified += calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i]) * prob
             print(str(calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])) + " * " + str(prob))
+        costs_planner = pb_ompl_interface.ss.getProblemDefinition().getSolutionCost()
         if costs > 0:
-            self.res[seed-1].append([planning_time, costs, costs_non_simplified])
+            self.res[seed-1].append([planning_time, costs, costs_planner])
             print("Costs: " + str(costs_non_simplified))
         else:
             self.res[seed-1].append([np.nan, np.nan, np.nan])
