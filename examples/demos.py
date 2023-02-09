@@ -56,7 +56,7 @@ def path_to_list(path):
 
 
 class Demo:
-    def __init__(self, env, termination_value, iteration_termination, interpolation_num, seed=-1):
+    def __init__(self, env, termination_time, termination_iterations, interpolation_num, seed=-1):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -65,24 +65,18 @@ class Demo:
             farVal=8)
         self.env = env
         self.robot = self.env.robot
-        if iteration_termination:
-            # tc = ob.IterationTerminationCondition(termination_value)
-            # tc.operator(ob.PlannerTerminationCondition())
-            # tc = ob.PlannerTerminationCondition(tc_f)
-            tc = termination_value
-        else:
-            tc = termination_value
 
         self.pb_ompl_interface = pb_ompl.PbOMPL(self.env.robot, self.env.obstacles, self.env.poobjects,
                                                 self.env.poobjects_properties,
                                                 self.robot.cam_link_id, self.robot.cam_orientation,
                                                 self.env.goal_states, self.env.space_name, self.env.bounds,
-                                                tc, interpolation_num)
+                                                termination_time, interpolation_num)
 
         self.pb_ompl_interface.set_obstacles(self.env.obstacles)
         self.pb_ompl_interface.set_planner("Partial")
         self.pb_ompl_interface.set_state_sampler_name("camera", seed)
         self.pb_ompl_interface.ss.getProblemDefinition().setSeed(seed)
+        self.pb_ompl_interface.ss.getProblemDefinition().setIterations(termination_iterations)
         self.res = False
         self.paths = []
 
@@ -154,7 +148,7 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 10, True, 1000, seed=8)
+        demo = Demo(env, 0, 140, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -164,7 +158,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple door demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 200, False, 1000)
+        demo = Demo(env, 200, -1, 1000, seed=42)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -173,7 +167,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 2:
         # house roomba demo
         env = environments.RoombaHouseEnv()
-        demo = Demo(env, 200, False, 1000)
+        demo = Demo(env, 200, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -182,7 +176,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 3:
         # simple mobile arm demo
         env = environments.MobileArmEnv()
-        demo = Demo(env, 20, False, 1000)
+        demo = Demo(env, 20, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -190,7 +184,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 4:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
-        demo = Demo(env, 200, False, 1000)
+        demo = Demo(env, 200, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -198,7 +192,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env, 200, False, 1000)
+        demo = Demo(env, 200, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -206,7 +200,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 6:
         # simple search and rescue demo
         env = environments.SearchAndRescueSimpleEnv()
-        demo = Demo(env, 200, False, 1000)
+        demo = Demo(env, 200, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
@@ -214,7 +208,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 7:
         # search and rescue demo
         env = environments.SearchAndRescueEnv()
-        demo = Demo(env, 300, False, 1000)
+        demo = Demo(env, 300, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
@@ -222,7 +216,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 8:
         # simple parking demo
         env = environments.ParkingEnv()
-        demo = Demo(env, 30, False, 1000)
+        demo = Demo(env, 30, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
@@ -230,7 +224,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
-        demo = Demo(env, 300, False, 1000)
+        demo = Demo(env, 300, -1, 1000)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
