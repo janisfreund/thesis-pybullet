@@ -51,9 +51,12 @@ class CameraStateSampler(ob.RealVectorStateSampler):
             self.rng_py.setLocalSeed(seed)
             directory = "./sample_data/"
             # Delete the directory and its contents if it already exists
-            if os.path.exists(directory):
+            if os.path.exists(directory) and seed == 1:
                 shutil.rmtree(directory)
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except:
+                pass
             name = "seed" + str(seed) + ".csv"
             self.file_path = os.path.join(directory, name)
             header = []
@@ -345,9 +348,12 @@ class DefaultStateSampler(ob.RealVectorStateSampler):
             self.rng_py.setLocalSeed(seed)
             directory = "./sample_data/"
             # Delete the directory and its contents if it already exists
-            if os.path.exists(directory):
+            if os.path.exists(directory) and seed == 1:
                 shutil.rmtree(directory)
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except:
+                pass
             name = "seed" + str(seed) + ".csv"
             self.file_path = os.path.join(directory, name)
             header = []

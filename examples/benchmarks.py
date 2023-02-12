@@ -6,21 +6,20 @@ import time
 import pybullet as p
 import sys
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-print(fm.get_font_names())
 import pickle
 import progressbar
 import numpy as np
+import csv
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import environments
 import demos
 
-ITERATIONS_START = 40
-ITERATIONS_END = 200
-ITERATIONS_STEP = 10
-NUM_PARALLEL = 1
+ITERATIONS_START = 80
+ITERATIONS_END = 120
+ITERATIONS_STEP = 40
+NUM_PARALLEL = 2
 
 
 def calc_cost(path):
@@ -44,7 +43,7 @@ def vector_to_string(vec):
     return s
 
 
-def load_graph(name):
+def load_graph_from_pickle(name):
     path = "./benchmark_data/" + name
     files = [f for f in os.listdir(path)]
     fig = (pickle.load(open(os.path.join(path, files[0]), "rb")))
@@ -60,6 +59,49 @@ def load_graph(name):
     fig.tight_layout()
 
     # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
+    plt.subplots_adjust(hspace=0.3)
+    plt.show()
+
+
+def load_graph_from_data(name):
+    path = "./benchmark_data/" + name
+    costs_cam = []
+    with open(path + "/costs_camera.csv", "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            costs_cam.append([float(value) for value in row])
+    costs_def = []
+    with open(path + "/costs_default.csv", "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            costs_def.append([float(value) for value in row])
+    suc_cam = []
+    with open(path + "/success_camera.csv", "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            suc_cam.append([float(value) for value in row])
+    suc_def = []
+    with open(path + "/success_default.csv", "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            suc_def.append([float(value) for value in row])
+
+    fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
+    axes[0].plot([c[0] for c in costs_def], [c[2] for c in costs_def], label="default")
+    axes[1].plot([c[0] for c in suc_def], [c[1] for c in suc_def], label="default")
+    axes[0].plot([c[0] for c in costs_cam], [c[2] for c in costs_cam], label="camera")
+    axes[1].plot([c[0] for c in suc_cam], [c[1] for c in suc_cam], label="camera")
+
+    axes[0].set_xlabel('iterations', fontsize=14)
+    axes[0].set_ylabel('solution cost', fontsize=14)
+    axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
+    axes[0].legend()
+    axes[1].set_xlabel('iterations', fontsize=14)
+    axes[1].set_ylabel('success [%]', fontsize=14)
+    axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
+    axes[1].legend()
+
+    fig.tight_layout()
     plt.subplots_adjust(hspace=0.3)
     plt.show()
 
@@ -113,13 +155,14 @@ class Benchmark:
         multiplier = 1000 / t_total
 
         t_elapsed = 0
+
         for t in range(max_time, min_tme - 1, -time_interval):
             for seed in range(1, self.num_parallel + 1):
                 # self.plan(t, seed, sampler)
                 self.plan(self.env, t, seed, sampler)
-                sampler = "stored"
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
+            sampler = "stored"
 
         self.success_avg.append(np.mean(self.success, axis=0))
         del_idx = []
@@ -147,6 +190,32 @@ class Benchmark:
         for i in range(self.num_parallel):
             self.success.append([])
 
+    def save_data(self, name):
+        path = "./benchmark_data/" + name
+        try:
+            os.mkdir(path)
+        except OSError:
+            pass
+        files = [f for f in os.listdir(path)]
+        for f in files:
+            os.remove(os.path.join(path, f))
+        with open(path + "/costs_default.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            for row in self.res_avg[0]:
+                writer.writerow(row)
+        with open(path + "/costs_camera.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            for row in self.res_avg[1]:
+                writer.writerow(row)
+        with open(path + "/success_default.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            for row in self.success_avg[0]:
+                writer.writerow(row)
+        with open(path + "/success_camera.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            for row in self.success_avg[1]:
+                writer.writerow(row)
+
     def create_graph(self, name, save):
         fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
         axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default")
@@ -156,13 +225,7 @@ class Benchmark:
 
         if save:
             path = "./benchmark_data/" + name
-            try:
-                os.mkdir(path)
-            except OSError:
-                pass
-            files = [f for f in os.listdir(path)]
-            for f in files:
-                os.remove(os.path.join(path, f))
+            self.save_data(name)
             pickle.dump(fig, open(path + "/" + name + ".pickle", "wb"))
         axes[0].set_xlabel('iterations', fontsize=14)
         axes[0].set_ylabel('solution cost', fontsize=14)
@@ -178,7 +241,7 @@ class Benchmark:
 
         # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
         plt.subplots_adjust(hspace=0.3)
-        plt.savefig(path + "/" + name + ".png")
+        fig.savefig(path + "/" + name + ".png")
         plt.show()
 
 
@@ -196,5 +259,7 @@ if __name__ == '__main__':
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
         b.create_graph("roomba_simple_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
+    elif True:
+        load_graph_from_data("roomba_simple_80-120-40-2")
     else:
-        load_graph("test")
+        load_graph_from_pickle("roomba_simple_80-120-40-2")
