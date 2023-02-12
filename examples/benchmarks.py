@@ -11,17 +11,15 @@ print(fm.get_font_names())
 import pickle
 import progressbar
 import numpy as np
-import random
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
-import pb_ompl
 import environments
 import demos
 
-ITERATIONS_START = 20
-ITERATIONS_END = 40
-ITERATIONS_STEP = 20
+ITERATIONS_START = 40
+ITERATIONS_END = 200
+ITERATIONS_STEP = 10
 NUM_PARALLEL = 1
 
 
@@ -67,7 +65,7 @@ def load_graph(name):
 
 
 class Benchmark:
-    def __init__(self, num_parallel):
+    def __init__(self, num_parallel, env):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -76,6 +74,7 @@ class Benchmark:
             farVal=8)
 
         self.num_parallel = num_parallel
+        self.env = env
 
         self.res = []
         for i in range(num_parallel):
@@ -87,51 +86,9 @@ class Benchmark:
         self.res_avg = []
         self.success_avg = []
 
-    def plan(self, planning_time, seed, sampler):
-        env = environments.RoombaEnv()
-        robot = env.robot
-
-        costs = 0
-        costs_non_simplified = 0
-
-        pb_ompl_interface = pb_ompl.PbOMPL(env.robot, env.obstacles, env.poobjects,
-                                                env.poobjects_properties,
-                                                robot.cam_link_id, robot.cam_orientation,
-                                                env.goal_states, env.space_name, env.bounds,
-                                                planning_time, 0)
-
-        pb_ompl_interface.set_obstacles(env.obstacles)
-        pb_ompl_interface.set_planner("Partial")
-        if sampler != "default":
-            pb_ompl_interface.set_state_sampler_name(sampler, seed)
-        pb_ompl_interface.ss.getProblemDefinition().setSeed(seed)
-        pb_ompl_interface.ss.getProblemDefinition().setIterations(planning_time)
-
-        robot.set_state(env.start)
-        res, paths, _ = pb_ompl_interface.plan(env.goal)
-
-        print("\nPath costs:")
-        for i, path in enumerate(paths):
-            belief_idx = pb_ompl_interface.ss.getProblemDefinition().getSolutionIdx()[i]
-            prob = pb_ompl_interface.si.getWorld().getBeliefStateProbability(belief_idx)
-            costs += calc_cost(path) * prob
-            costs_non_simplified += calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i]) * prob
-            print(str(calc_cost(pb_ompl_interface.ss.getProblemDefinition().getRawSolutions()[i])) + " * " + str(prob))
-        costs_planner = pb_ompl_interface.ss.getProblemDefinition().getSolutionCost()
-        if costs > 0:
-            self.res[seed-1].append([planning_time, costs, costs_planner])
-            print("Costs: " + str(costs_non_simplified))
-        else:
-            self.res[seed-1].append([np.nan, np.nan, np.nan])
-        self.success[seed-1].append([planning_time, res])
-
-        del pb_ompl_interface
-
-    def plan_alt(self, planning_time, seed, sampler):
-        env = environments.RoombaEnv()
-        demo = demos.Demo(env, 0, planning_time, 1000, seed=seed)
+    def plan(self, env, planning_time, seed, sampler):
+        demo = demos.Demo(env, 0, planning_time, 1000, seed=seed, sampler=sampler)
         demo.plan()
-        demo.print_costs()
 
         if demo.costs > 0:
             self.res[seed-1].append([planning_time, 0, demo.costs])
@@ -156,10 +113,11 @@ class Benchmark:
         multiplier = 1000 / t_total
 
         t_elapsed = 0
-        for t in range(min_tme, max_time + 1, time_interval):
+        for t in range(max_time, min_tme - 1, -time_interval):
             for seed in range(1, self.num_parallel + 1):
                 # self.plan(t, seed, sampler)
-                self.plan(t, seed, sampler)
+                self.plan(self.env, t, seed, sampler)
+                sampler = "stored"
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
 
@@ -193,8 +151,8 @@ class Benchmark:
         fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
         axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default")
         axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
-        # axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
-        # axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
+        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
 
         if save:
             path = "./benchmark_data/" + name
@@ -225,18 +183,17 @@ class Benchmark:
 
 
 if __name__ == '__main__':
-    time.sleep(10)
     if True:
         p.connect(p.GUI)
+        env = environments.RoombaEnv()
+        b = Benchmark(NUM_PARALLEL, env)
 
-        b = Benchmark(NUM_PARALLEL)
+        devnull = open('/dev/null', 'w')
+        oldstdout_fno = os.dup(sys.stdout.fileno())
+        os.dup2(devnull.fileno(), 1)
 
-        # devnull = open('/dev/null', 'w')
-        # oldstdout_fno = os.dup(sys.stdout.fileno())
-        # os.dup2(devnull.fileno(), 1)
-
-        # b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
-        # b.reset()
+        b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
+        b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
         b.create_graph("roomba_simple_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
     else:
