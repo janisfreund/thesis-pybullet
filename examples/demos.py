@@ -154,14 +154,10 @@ if __name__ == '__main__':
 
     if DEMO_SELECTION == -1:
         # time.sleep(10)
-        env1 = environments.RoombaEnv()
-        demo1 = Demo(env1, 0, 100, 1000, seed=1, sampler="camera")
+        env1 = environments.RoombaDoorEnv()
+        demo1 = Demo(env1, 0, 500, 1000, seed=1, sampler="default")
         demo1.plan()
         demo1.print_costs()
-        env2 = environments.RoombaEnv()
-        demo2 = Demo(env2, 0, 80, 1000, seed=1, sampler="stored")
-        demo2.plan()
-        demo2.print_costs()
 
 
     if DEMO_SELECTION == 0:

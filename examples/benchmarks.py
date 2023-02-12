@@ -18,7 +18,7 @@ import demos
 
 ITERATIONS_START = 80
 ITERATIONS_END = 120
-ITERATIONS_STEP = 40
+ITERATIONS_STEP = 10
 NUM_PARALLEL = 2
 
 
@@ -128,15 +128,35 @@ class Benchmark:
         self.res_avg = []
         self.success_avg = []
 
-    def plan(self, env, planning_time, seed, sampler):
+        path = "./benchmark_data/wip"
+        try:
+            os.mkdir(path)
+        except OSError:
+            pass
+        files = [f for f in os.listdir(path)]
+        for f in files:
+            os.remove(os.path.join(path, f))
+
+    def plan(self, env, planning_time, seed, sampler, idx):
         demo = demos.Demo(env, 0, planning_time, 1000, seed=seed, sampler=sampler)
         demo.plan()
 
+        path = "./benchmark_data/wip"
         if demo.costs > 0:
             self.res[seed-1].append([planning_time, 0, demo.costs])
+            with open(path + "/costs_" + str(idx) + ".csv", "a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([seed, planning_time, 0, demo.costs])
         else:
             self.res[seed-1].append([np.nan, np.nan, np.nan])
+            with open(path + "/costs_" + str(idx) + ".csv", "a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([seed, np.nan, np.nan, np.nan])
         self.success[seed-1].append([planning_time, demo.res])
+        with open(path + "/success_" + str(idx) + ".csv", "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([seed, planning_time, demo.res])
+
 
     def benchmark(self, min_tme, max_time, time_interval, sampler):
         widgets = [' [',
@@ -155,11 +175,14 @@ class Benchmark:
         multiplier = 1000 / t_total
 
         t_elapsed = 0
+        idx = 0
+        if sampler == "camera":
+            idx = 1
 
         for t in range(max_time, min_tme - 1, -time_interval):
             for seed in range(1, self.num_parallel + 1):
                 # self.plan(t, seed, sampler)
-                self.plan(self.env, t, seed, sampler)
+                self.plan(self.env, t, seed, sampler, idx)
                 t_elapsed += t
                 bar.update(int(t_elapsed * multiplier))
             sampler = "stored"
@@ -258,7 +281,7 @@ if __name__ == '__main__':
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
-        b.create_graph("roomba_simple_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
+        b.create_graph("roomba_door_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
     elif True:
         load_graph_from_data("roomba_simple_80-120-40-2")
     else:
