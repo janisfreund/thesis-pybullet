@@ -9,3 +9,5 @@ examples/camera/
 *.console
 
 *.log
+
+examples/sample_data/

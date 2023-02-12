@@ -27,6 +27,8 @@ import operator
 from scipy.spatial.transform import Rotation as R
 
 from examples.camera_state_sampler import CameraStateSampler
+from examples.camera_state_sampler import StoredStateSampler
+from examples.camera_state_sampler import DefaultStateSampler
 
 class PbOMPLRobot():
     '''
@@ -475,6 +477,12 @@ class PbOMPL():
             camera_sampler = CameraStateSampler(self.si, zstate, self.camera_link, self.robot,
                                                 [prop[-1] for prop in self.poobjects_properties], multiple_objects, self.space_name, seed)
             self.set_state_sampler(camera_sampler)
+        elif sampler_name == "stored":
+            stored_sampler = StoredStateSampler(self.si, self.space_name, seed)
+            self.set_state_sampler(stored_sampler)
+        else:
+            default_sampler = DefaultStateSampler(self.si, self.robot, self.space_name, seed)
+            self.set_state_sampler(default_sampler)
 
     def plan_start_goal(self, start, goal):
         '''

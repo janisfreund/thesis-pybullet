@@ -1,6 +1,8 @@
 import math
 import os
 import os.path as osp
+import time
+
 import pybullet as p
 import sys
 import matplotlib.pyplot as plt
@@ -15,9 +17,10 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
 import pb_ompl
 import environments
+import demos
 
-ITERATIONS_START = 120
-ITERATIONS_END = 140
+ITERATIONS_START = 20
+ITERATIONS_END = 40
 ITERATIONS_STEP = 20
 NUM_PARALLEL = 1
 
@@ -124,6 +127,18 @@ class Benchmark:
 
         del pb_ompl_interface
 
+    def plan_alt(self, planning_time, seed, sampler):
+        env = environments.RoombaEnv()
+        demo = demos.Demo(env, 0, planning_time, 1000, seed=seed)
+        demo.plan()
+        demo.print_costs()
+
+        if demo.costs > 0:
+            self.res[seed-1].append([planning_time, 0, demo.costs])
+        else:
+            self.res[seed-1].append([np.nan, np.nan, np.nan])
+        self.success[seed-1].append([planning_time, demo.res])
+
     def benchmark(self, min_tme, max_time, time_interval, sampler):
         widgets = [' [',
                    progressbar.Timer(format='elapsed time: %(elapsed)s'),
@@ -178,8 +193,8 @@ class Benchmark:
         fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
         axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default")
         axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
-        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
-        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+        # axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
+        # axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
 
         if save:
             path = "./benchmark_data/" + name
@@ -210,6 +225,7 @@ class Benchmark:
 
 
 if __name__ == '__main__':
+    time.sleep(10)
     if True:
         p.connect(p.GUI)
 
@@ -219,8 +235,8 @@ if __name__ == '__main__':
         # oldstdout_fno = os.dup(sys.stdout.fileno())
         # os.dup2(devnull.fileno(), 1)
 
-        b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
-        b.reset()
+        # b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
+        # b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
         b.create_graph("roomba_simple_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
     else:

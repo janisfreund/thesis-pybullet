@@ -20,13 +20,25 @@ import operator
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import time
+import os
+import shutil
+import csv
+
+def stateToStr(state, dims):
+    s = "["
+    for i in range(dims):
+        s += str(state[i]) + ", "
+    s = s[:-2]
+    s += "]"
+    return s
+
 
 class CameraStateSampler(ob.RealVectorStateSampler):
     def __init__(self, si, base_offset, camera_link_id, robot, poobjects_pos, multiple_objects, space, seed=-1):
         super().__init__(si.getStateSpace())
         self.si = si
         self.name_ = "Camera State Sampler"
-        self.rng_ = ou.RNG()
+        self.rng_py = ou.RNG()
         self.base_offset = base_offset
         self.camera_link_id = camera_link_id
         self.robot = robot
@@ -34,27 +46,36 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         self.poobjects_pos = poobjects_pos
         self.multiple_objects = multiple_objects
         self.space = space
+        self.seed = seed
         if seed != -1:
-            self.rng_.setLocalSeed(seed)
-
+            self.rng_py.setLocalSeed(seed)
+            directory = "./sample_data/"
+            # Delete the directory and its contents if it already exists
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.makedirs(directory)
+            name = "seed" + str(seed) + ".csv"
+            self.file_path = os.path.join(directory, name)
+            header = []
+            for i in range(self.robot.num_dim):
+                header.append("q" + str(i))
+            with open(self.file_path, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(header)
 
     def sampleUniform(self, state):
-        # bounds = self.robot.get_joint_bounds()
         bounds = self.si.getStateSpace().getBounds()
         if self.space == "car":
-            # state.setX(self.rng_.uniformReal(bounds[0][0], bounds[0][1]))
-            # state.setY(self.rng_.uniformReal(bounds[1][0], bounds[1][1]))
-            state.setX(self.rng_.uniformReal(bounds.low[0], bounds.high[0]))
-            state.setY(self.rng_.uniformReal(bounds.low[1], bounds.high[1]))
-            state.setYaw(self.rng_.uniformReal(-math.pi, math.pi))
+            state.setX(self.rng_py.uniformReal(bounds.low[0], bounds.high[0]))
+            state.setY(self.rng_py.uniformReal(bounds.low[1], bounds.high[1]))
+            state.setYaw(self.rng_py.uniformReal(-math.pi, math.pi))
             if state.getYaw() >= math.pi:
                 state.setYaw(state.getYaw() - math.pi)
         else:
-            # for i, bound in enumerate(bounds):
-            #     state[i] = self.rng_.uniformReal(bound[0], bound[1])
             for i in range(self.robot.num_dim):
-                state[i] = self.rng_.uniformReal(bounds.low[i], bounds.high[i])
+                state[i] = self.rng_py.uniformReal(bounds.low[i], bounds.high[i])
 
+        self.store_sampled_state(self.state_to_list(state))
         return True
 
     def sampleGoodCameraPosition(self, state):
@@ -75,7 +96,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
                 if obj == 1:
                     existing_objects.append(i)
             if len(existing_objects) > 0:
-                random_num = self.rng_.uniformInt(0, len(existing_objects) - 1)
+                random_num = self.rng_py.uniformInt(0, len(existing_objects) - 1)
+                # random_num = random.randint(0, len(existing_objects) - 1)
                 object_idx = existing_objects[random_num]
             else:
                 object_idx = 0
@@ -85,7 +107,9 @@ class CameraStateSampler(ob.RealVectorStateSampler):
         # bounds = self.robot.get_joint_bounds()
         bounds = self.si.getStateSpace().getBounds()
         # base_pos = [self.rng_.uniformReal(bounds[0][0], bounds[0][1]), self.rng_.uniformReal(bounds[1][0], bounds[1][1])]
-        base_pos = [self.rng_.uniformReal(bounds.low[0], bounds.high[0]), self.rng_.uniformReal(bounds.low[1], bounds.high[1])]
+        base_pos = [self.rng_py.uniformReal(bounds.low[0], bounds.high[0]), self.rng_py.uniformReal(bounds.low[1], bounds.high[1])]
+        # base_pos = [random.uniform(bounds.low[0], bounds.high[0]),
+        #             random.uniform(bounds.low[1], bounds.high[1])]
         obj_pos = self.poobjects_pos[object_idx]
         # position is directly above base + offset in z direction
         # offset = p.getLinkState(self.robot_id, self.camera_link_id)[4][2]
@@ -177,6 +201,7 @@ class CameraStateSampler(ob.RealVectorStateSampler):
 
             time.sleep(2.5)
 
+        self.store_sampled_state(self.state_to_list(state))
         return True
 
 
@@ -189,7 +214,8 @@ class CameraStateSampler(ob.RealVectorStateSampler):
                 if obj == 1:
                     existing_objects.append(i)
             if len(existing_objects) > 0:
-                random_num = self.rng_.uniformInt(0, len(existing_objects) - 1)
+                random_num = self.rng_py.uniformInt(0, len(existing_objects) - 1)
+                # random_num = random.randint(0, len(existing_objects) - 1)
                 object_idx = existing_objects[random_num]
             else:
                 object_idx = 0
@@ -285,11 +311,123 @@ class CameraStateSampler(ob.RealVectorStateSampler):
 
         # time.sleep(10)
 
+        self.store_sampled_state(self.state_to_list(state))
         return True
 
+    def reset(self):
+        self.rng_py.setLocalSeed(self.seed)
+
+    def store_sampled_state(self, state):
+        with open(self.file_path, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(state)
 
     def state_to_list(self, state):
-        rstate = []
-        for s in state:
-            rstate.append(s)
-        return rstate
+        if self.space == "car" and not isinstance(state, list):
+            x = state.getX()
+            y = state.getY()
+            theta = state.getYaw()
+            return [x, y, theta]
+        else:
+            return [state[i] for i in range(self.robot.num_dim)]
+
+
+class DefaultStateSampler(ob.RealVectorStateSampler):
+    def __init__(self, si, robot, space, seed=-1):
+        super().__init__(si.getStateSpace())
+        self.si = si
+        self.name_ = "Default State Sampler"
+        self.robot = robot
+        self.rng_py = ou.RNG()
+        self.space = space
+        self.seed = seed
+        if seed != -1:
+            self.rng_py.setLocalSeed(seed)
+            directory = "./sample_data/"
+            # Delete the directory and its contents if it already exists
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.makedirs(directory)
+            name = "seed" + str(seed) + ".csv"
+            self.file_path = os.path.join(directory, name)
+            header = []
+            for i in range(self.robot.num_dim):
+                header.append("q" + str(i))
+            with open(self.file_path, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(header)
+
+    def sampleUniform(self, state):
+        bounds = self.si.getStateSpace().getBounds()
+        if self.space == "car":
+            state.setX(self.rng_py.uniformReal(bounds.low[0], bounds.high[0]))
+            state.setY(self.rng_py.uniformReal(bounds.low[1], bounds.high[1]))
+            state.setYaw(self.rng_py.uniformReal(-math.pi, math.pi))
+            if state.getYaw() >= math.pi:
+                state.setYaw(state.getYaw() - math.pi)
+        else:
+            for i in range(self.robot.num_dim):
+                state[i] = self.rng_py.uniformReal(bounds.low[i], bounds.high[i])
+
+        self.store_sampled_state(self.state_to_list(state))
+        return True
+
+    def sampleGoodCameraPosition(self, state):
+        self.sampleUniform(state)
+
+    def sampleGoodCameraPositionNear(self, state, x, y):
+        self.sampleUniform(state)
+
+    def reset(self):
+        self.rng_py.setLocalSeed(self.seed)
+
+    def store_sampled_state(self, state):
+        with open(self.file_path, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(state)
+
+    def state_to_list(self, state):
+        if self.space == "car" and not isinstance(state, list):
+            x = state.getX()
+            y = state.getY()
+            theta = state.getYaw()
+            return [x, y, theta]
+        else:
+            return [state[i] for i in range(self.robot.num_dim)]
+
+
+class StoredStateSampler(ob.RealVectorStateSampler):
+    def __init__(self, si, space, seed):
+        super().__init__(si.getStateSpace())
+        self.space = space
+        self.iteration = 0
+        self.states = []
+        directory = "./sample_data/"
+        name = "seed" + str(seed) + ".csv"
+        with open(os.path.join(directory, name), "r") as file:
+            reader = csv.reader(file)
+            # Skip the header row
+            next(reader)
+            for row in reader:
+                self.states.append([float(value) for value in row])
+        self.dims = len(self.states[0])
+
+    def sampleStored(self, state):
+        if self.space == "car":
+            state.setX(self.states[self.iteration][0])
+            state.setY(self.states[self.iteration][1])
+            state.setYaw(self.states[self.iteration][2])
+        else:
+            for i in range(self.dims):
+                state[i] = self.states[self.iteration][i]
+        self.iteration += 1
+        return True
+
+    def sampleUniform(self, state):
+        self.sampleStored(state)
+
+    def sampleGoodCameraPosition(self, state):
+        self.sampleStored(state)
+
+    def sampleGoodCameraPositionNear(self, state, x, y):
+        self.sampleStored(state)

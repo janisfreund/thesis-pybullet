@@ -14,7 +14,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 0
+DEMO_SELECTION = -1
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -56,7 +56,7 @@ def path_to_list(path):
 
 
 class Demo:
-    def __init__(self, env, termination_time, termination_iterations, interpolation_num, seed=-1):
+    def __init__(self, env, termination_time, termination_iterations, interpolation_num, seed=-1, sampler="camera"):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -74,15 +74,17 @@ class Demo:
 
         self.pb_ompl_interface.set_obstacles(self.env.obstacles)
         self.pb_ompl_interface.set_planner("Partial")
-        self.pb_ompl_interface.set_state_sampler_name("camera", seed)
+        self.pb_ompl_interface.set_state_sampler_name(sampler, seed)
         self.pb_ompl_interface.ss.getProblemDefinition().setSeed(seed)
         self.pb_ompl_interface.ss.getProblemDefinition().setIterations(termination_iterations)
         self.res = False
         self.paths = []
+        self.costs = 0
 
     def plan(self):
         self.robot.set_state(self.env.start)
         self.res, self.paths, _ = self.pb_ompl_interface.plan(self.env.goal)
+        self.costs = self.pb_ompl_interface.ss.getProblemDefinition().getSolutionCost()
 
     def draw_start(self, color):
         # draw start position
@@ -91,6 +93,11 @@ class Demo:
     def draw_goal(self, color):
         # draw goal position
         add_debug_point([self.env.goal[0], self.env.goal[1], 0], 0.1, color)
+
+    def update_iterations(self, num_iterations):
+        self.pb_ompl_interface.planner.clear()
+        self.pb_ompl_interface.ss.getProblemDefinition().setIterations(num_iterations)
+        self.pb_ompl_interface.space.state_sampler.reset()
 
     def print_costs(self):
         print("\nPath costs:")
@@ -145,6 +152,18 @@ if __name__ == '__main__':
     # time.sleep(10)
     p.connect(p.GUI)
 
+    if DEMO_SELECTION == -1:
+        # time.sleep(10)
+        env1 = environments.RoombaEnv()
+        demo1 = Demo(env1, 0, 100, 1000, seed=1, sampler="camera")
+        demo1.plan()
+        demo1.print_costs()
+        env2 = environments.RoombaEnv()
+        demo2 = Demo(env2, 0, 80, 1000, seed=1, sampler="stored")
+        demo2.plan()
+        demo2.print_costs()
+
+
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
@@ -159,6 +178,11 @@ if __name__ == '__main__':
         # simple door demo
         env = environments.RoombaDoorEnv()
         demo = Demo(env, 200, -1, 1000, seed=42)
+        demo.draw_start([0, 0, 0, 1])
+        demo.draw_goal([0, 0, 0, 1])
+        env.robot.set_state(env.start)
+        p.loadURDF("../models/floor/floor.urdf")
+        time.sleep(100)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
