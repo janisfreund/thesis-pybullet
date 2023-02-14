@@ -1,15 +1,13 @@
 __pycache__/
-examples/camera/
+scripts/camera/
 .idea/
 *.dot
 *.blend
 *.blend1
 *.png
-
 *.console
-
 *.log
 
-examples/sample_data/
-
-examples/benchmark_data/wip/
+scripts/sample_data/
+scripts/benchmark_data/wip/
+scripts/benchmark_data

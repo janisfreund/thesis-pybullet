@@ -7,6 +7,7 @@ import math
 from os.path import abspath, dirname, join
 sys.path.insert(0, join(dirname(dirname(abspath(__file__))), '../thesis-ompl/ompl/py-bindings'))
 from ompl import base as ob
+from ompl import util as ou
 
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
@@ -99,6 +100,20 @@ class Demo:
         self.pb_ompl_interface.ss.getProblemDefinition().setIterations(num_iterations)
         self.pb_ompl_interface.space.state_sampler.reset()
 
+    def init_benchmark_mode(self, min, max, step):
+        benchmark_settings = ou.vectorInt()
+        benchmark_settings.append(min)
+        benchmark_settings.append(max)
+        benchmark_settings.append(step)
+        self.pb_ompl_interface.ss.getProblemDefinition().setBenchmarkSettings(benchmark_settings)
+
+    def get_benchmark_results(self):
+        costs = []
+        c_ = self.pb_ompl_interface.ss.getProblemDefinition().getBenchmarkSolutionCosts()
+        for c in c_:
+            costs.append(c)
+        return costs
+
     def print_costs(self):
         print("\nPath costs:")
         costs = 0
@@ -153,17 +168,19 @@ if __name__ == '__main__':
     p.connect(p.GUI)
 
     if DEMO_SELECTION == -1:
-        # time.sleep(10)
-        env1 = environments.RoombaDoorEnv()
-        demo1 = Demo(env1, 0, 500, 1000, seed=1, sampler="default")
+        env1 = environments.RoombaEnv()
+        demo1 = Demo(env1, 0, 200, 1000, seed=1, sampler="camera")
+        demo1.init_benchmark_mode(130, 180, 20)
         demo1.plan()
-        demo1.print_costs()
+        # demo1.print_costs()
+        costs = demo1.get_benchmark_results()
+        print(costs)
 
 
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 0, 140, 1000, seed=1)
+        demo = Demo(env, 0, 140, 1000, seed=1, sampler="camera")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])

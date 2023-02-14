@@ -26,9 +26,9 @@ import os
 import operator
 from scipy.spatial.transform import Rotation as R
 
-from examples.camera_state_sampler import CameraStateSampler
-from examples.camera_state_sampler import StoredStateSampler
-from examples.camera_state_sampler import DefaultStateSampler
+from scripts.camera_state_sampler import CameraStateSampler
+from scripts.camera_state_sampler import StoredStateSampler
+from scripts.camera_state_sampler import DefaultStateSampler
 
 class PbOMPLRobot():
     '''
@@ -164,8 +164,11 @@ class PbOMPL():
         self.counter = 0
         self.planning_time = planning_time
         self.interpolation_num = interpolation_num
-        for f in os.listdir('./camera'):
-            os.remove(os.path.join('./camera', f))
+        try:
+            for f in os.listdir('./camera'):
+                os.remove(os.path.join('./camera', f))
+        except:
+            pass
 
         self.space_name = space
         if space == "car":

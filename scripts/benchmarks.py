@@ -16,8 +16,8 @@ sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 import environments
 import demos
 
-ITERATIONS_START = 80
-ITERATIONS_END = 120
+ITERATIONS_START = 0
+ITERATIONS_END = 100
 ITERATIONS_STEP = 10
 NUM_PARALLEL = 2
 
@@ -158,7 +158,7 @@ class Benchmark:
             writer.writerow([seed, planning_time, demo.res])
 
 
-    def benchmark(self, min_tme, max_time, time_interval, sampler):
+    def benchmark_legacy(self, min_tme, max_time, time_interval, sampler):
         widgets = [' [',
                    progressbar.Timer(format='elapsed time: %(elapsed)s'),
                    '] ',
@@ -187,6 +187,37 @@ class Benchmark:
                 bar.update(int(t_elapsed * multiplier))
             sampler = "stored"
 
+        self.success_avg.append(np.mean(self.success, axis=0))
+        del_idx = []
+        for i in range(len(self.res[0])):
+            all_none = True
+            for n in range(len(self.res)):
+                if not np.isnan(self.res[n][i][0]):
+                    all_none = False
+                    break
+            if all_none:
+                del_idx.append(i)
+        self.res = np.delete(self.res, del_idx, axis=1)
+
+        if len(self.res[0]) > 0:
+            self.res_avg.append(np.nanmean(self.res, axis=0))
+        else:
+            self.res_avg.append([[0, 0, 0]])
+
+    def benchmark(self, min_iterations, max_iterations, step_size, sampler):
+        for seed in range(1, self.num_parallel + 1):
+            demo = demos.Demo(env, 0, max_iterations, 1000, seed=seed, sampler=sampler)
+            demo.init_benchmark_mode(min_iterations, max_iterations, step_size)
+            demo.plan()
+            costs = demo.get_benchmark_results()
+            for i, c in enumerate(costs):
+                iteration = min_iterations + (i * step_size)
+                if math.isinf(c):
+                    self.res[seed-1].append([np.nan, np.nan, np.nan])
+                    self.success[seed-1].append([iteration, 0])
+                else:
+                    self.res[seed-1].append([iteration, 0, c])
+                    self.success[seed - 1].append([iteration, 1])
         self.success_avg.append(np.mean(self.success, axis=0))
         del_idx = []
         for i in range(len(self.res[0])):
@@ -270,6 +301,8 @@ class Benchmark:
 
 if __name__ == '__main__':
     if True:
+        time.sleep(10)
+
         p.connect(p.GUI)
         env = environments.RoombaEnv()
         b = Benchmark(NUM_PARALLEL, env)
