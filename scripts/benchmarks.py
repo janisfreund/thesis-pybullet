@@ -19,7 +19,7 @@ import demos
 ITERATIONS_START = 0
 ITERATIONS_END = 100
 ITERATIONS_STEP = 10
-NUM_PARALLEL = 2
+NUM_PARALLEL = 3
 
 
 def calc_cost(path):
@@ -107,7 +107,7 @@ def load_graph_from_data(name):
 
 
 class Benchmark:
-    def __init__(self, num_parallel, env):
+    def __init__(self, num_parallel, env, continue_wip=False):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -128,14 +128,17 @@ class Benchmark:
         self.res_avg = []
         self.success_avg = []
 
+        self.continue_wip = continue_wip
+
         path = "./benchmark_data/wip"
         try:
             os.mkdir(path)
         except OSError:
             pass
-        files = [f for f in os.listdir(path)]
-        for f in files:
-            os.remove(os.path.join(path, f))
+        if not continue_wip:
+            files = [f for f in os.listdir(path)]
+            for f in files:
+                os.remove(os.path.join(path, f))
 
     def plan(self, env, planning_time, seed, sampler, idx):
         demo = demos.Demo(env, 0, planning_time, 1000, seed=seed, sampler=sampler)
@@ -205,7 +208,31 @@ class Benchmark:
             self.res_avg.append([[0, 0, 0]])
 
     def benchmark(self, min_iterations, max_iterations, step_size, sampler):
-        for seed in range(1, self.num_parallel + 1):
+        widgets = [' [',
+                   progressbar.Timer(format='elapsed time: %(elapsed)s'),
+                   '] ',
+                   progressbar.Bar('*'), ' (',
+                   progressbar.ETA(), ') ',
+                   ]
+
+        bar = progressbar.ProgressBar(max_value=self.num_parallel,
+                                      widgets=widgets).start()
+
+        path = "./benchmark_data/wip"
+        wip = self.continue_wip
+        if not os.path.exists(path + "/costs_" + sampler + ".csv"):
+            wip = False
+
+        max_seed_saved = 1
+        if wip:
+            costs_saved = []
+            with open(path + "/costs_" + sampler + ".csv", "r") as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    costs_saved.append([float(value) for value in row])
+            max_seed_saved = int(costs_saved[-1][0]) + 1
+
+        for seed in range(max_seed_saved, self.num_parallel + 1):
             demo = demos.Demo(env, 0, max_iterations, 1000, seed=seed, sampler=sampler)
             demo.init_benchmark_mode(min_iterations, max_iterations, step_size)
             demo.plan()
@@ -215,9 +242,44 @@ class Benchmark:
                 if math.isinf(c):
                     self.res[seed-1].append([np.nan, np.nan, np.nan])
                     self.success[seed-1].append([iteration, 0])
+                    with open(path + "/costs_" + sampler + ".csv", "a", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerow([seed, np.nan, np.nan, np.nan])
+                    with open(path + "/success_" + sampler + ".csv", "a", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerow([seed, iteration, 0])
                 else:
                     self.res[seed-1].append([iteration, 0, c])
                     self.success[seed - 1].append([iteration, 1])
+                    with open(path + "/costs_" + sampler + ".csv", "a", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerow([seed, iteration, 0, c])
+                    with open(path + "/success_" + sampler + ".csv", "a", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerow([seed, iteration, 1])
+            bar.update(seed)
+
+        if wip:
+            self.reset()
+            costs_saved = []
+            with open(path + "/costs_" + sampler + ".csv", "r") as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    costs_saved.append([float(value) for value in row])
+            max_seed_saved = costs_saved[-1][0]
+            for s in range(0, int(max_seed_saved)):
+                r = [c[1:] for c in costs_saved if c[0] == s+1]
+                self.res[s] = r
+            success_saved = []
+            with open(path + "/success_" + sampler + ".csv", "r") as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    success_saved.append([float(value) for value in row])
+            max_seed_saved = success_saved[-1][0]
+            for s in range(0, int(max_seed_saved)):
+                r = [c[1:] for c in success_saved if c[0] == s+1]
+                self.success[s] = r
+
         self.success_avg.append(np.mean(self.success, axis=0))
         del_idx = []
         for i in range(len(self.res[0])):
@@ -301,11 +363,9 @@ class Benchmark:
 
 if __name__ == '__main__':
     if True:
-        time.sleep(10)
-
         p.connect(p.GUI)
         env = environments.RoombaEnv()
-        b = Benchmark(NUM_PARALLEL, env)
+        b = Benchmark(NUM_PARALLEL, env, continue_wip=True)
 
         devnull = open('/dev/null', 'w')
         oldstdout_fno = os.dup(sys.stdout.fileno())
@@ -314,7 +374,7 @@ if __name__ == '__main__':
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
-        b.create_graph("roomba_door_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
+        b.create_graph("door_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
     elif True:
         load_graph_from_data("roomba_simple_80-120-40-2")
     else:
