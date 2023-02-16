@@ -15,7 +15,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 5
+DEMO_SELECTION = 0
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -174,7 +174,6 @@ if __name__ == '__main__':
         # demo1.print_costs()
         costs = demo1.get_benchmark_results()
         print(costs)
-
 
     if DEMO_SELECTION == 0:
         # simple roomba demo

@@ -17,9 +17,9 @@ import environments
 import demos
 
 ITERATIONS_START = 0
-ITERATIONS_END = 20000
-ITERATIONS_STEP = 500
-NUM_PARALLEL = 3
+ITERATIONS_END = 1000
+ITERATIONS_STEP = 50
+NUM_PARALLEL = 1
 
 
 def calc_cost(path):
@@ -364,7 +364,7 @@ class Benchmark:
 if __name__ == '__main__':
     if True:
         p.connect(p.GUI)
-        env = environments.ParkingCornerEnv()
+        env = environments.RoombaEnv()
         b = Benchmark(NUM_PARALLEL, env, continue_wip=False)
 
         devnull = open('/dev/null', 'w')
@@ -374,7 +374,7 @@ if __name__ == '__main__':
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
-        b.create_graph("parking_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
+        b.create_graph("obs_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
     elif True:
         load_graph_from_data("roomba_simple_80-120-40-2")
     else:
