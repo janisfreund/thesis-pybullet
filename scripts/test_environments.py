@@ -46,6 +46,16 @@ class Test:
         set_link_id = p.addUserDebugParameter('Camera link ', 0, 30, self.robot.cam_link_id)
         linkid = self.robot.cam_link_id
         b = True
+        print("-----------------------------")
+        print("Start valid:")
+        self.robot.set_state(self.env.start)
+        print(self.pb_ompl_interface.is_state_valid(self.env.start, self.world))
+        for n, g in enumerate(self.env.goal_states):
+            print("-----------------------------")
+            print("Goal " + str(n) + " valid:")
+            self.robot.set_state(g)
+            print(self.pb_ompl_interface.is_state_valid(g, self.world))
+        print("-----------------------------")
         while True:
             state_ = []
             for i, id in enumerate(joint_ids):
@@ -83,6 +93,6 @@ class Test:
 
 if __name__ == '__main__':
     p.connect(p.GUI)
-    env = environments.SearchAndRescueSimpleEnv()
+    env = environments.MobileArmObservationPointEnv()
     test = Test(env)
     test.test()

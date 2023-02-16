@@ -15,7 +15,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = -1
+DEMO_SELECTION = 5
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -164,7 +164,6 @@ class Demo:
 
 
 if __name__ == '__main__':
-    # time.sleep(10)
     p.connect(p.GUI)
 
     if DEMO_SELECTION == -1:
@@ -190,12 +189,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple door demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 200, -1, 1000, seed=42)
-        demo.draw_start([0, 0, 0, 1])
-        demo.draw_goal([0, 0, 0, 1])
-        env.robot.set_state(env.start)
-        p.loadURDF("../models/floor/floor.urdf")
-        time.sleep(100)
+        demo = Demo(env, 0, 1300, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -229,7 +223,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env, 200, -1, 1000)
+        demo = Demo(env, 0, 2000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -237,7 +231,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 6:
         # simple search and rescue demo
         env = environments.SearchAndRescueSimpleEnv()
-        demo = Demo(env, 200, -1, 1000)
+        demo = Demo(env, 0, 3000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
@@ -261,7 +255,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
-        demo = Demo(env, 300, -1, 1000)
+        demo = Demo(env, 0, 10000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()

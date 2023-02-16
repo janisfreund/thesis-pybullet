@@ -141,7 +141,7 @@ class MobileArmEnv(Environment):
         self.goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180), 0, 0, 0, 0, 0]
 
         self.space_name = "real"
-        self.bounds = [[-5.5, 3.5], [-5.5, 3.5]]
+        self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
 
         self.add_poobject_box([3, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_poobject_box([-3, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
@@ -171,7 +171,7 @@ class MobileArmHardEnv(Environment):
         self.goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180), 0, 0, 0, 0, 0]
 
         self.space_name = "real"
-        self.bounds = [[-5.5, 3.5], [-5.5, 3.5]]
+        self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
 
         self.add_obstacle_box([-1, 1, 1], [0.5, 0.1, 1], [1., 1., 1., 1.])
         self.add_obstacle_box([-1.5, 0.5, 1], [0.1, 0.5, 1], [1., 1., 1., 1.])
@@ -207,15 +207,15 @@ class MobileArmObservationPointEnv(Environment):
         self.goal = [1.5, 1.5, math.radians(-90), 0, math.radians(180), 0, 0, 0, 0, 0]
 
         self.space_name = "real"
-        self.bounds = [[-5.5, 3.5], [-5.5, 3.5]]
+        self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
 
-        self.add_obstacle_box([-2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([0, -1.5, 0.5], [0.5, 0.1, 0.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([0, -1.5, 2.5], [0.5, 0.1, 0.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([-3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [1., 1., 1., 1.])
-        self.add_obstacle_box([0, 4, 0.5], [0.1, 5.5, 0.5], [1., 1., 1., 1.])
+        self.add_obstacle_box([-2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([0, -1.5, 0.5], [0.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([0, -1.5, 2.5], [0.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([-3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([0, 4, 0.5], [0.1, 5.5, 0.5], [0.5, 0.5, 0.5, 1.])
 
         self.add_poobject_box([1, 1.9, 1.1], [0.05, 0.05, 0.05], [1., 0., 0., 1.])
         self.add_poobject_box([-1, 1.9, 1.1], [0.05, 0.05, 0.05], [0., 1., 0., 1.])
