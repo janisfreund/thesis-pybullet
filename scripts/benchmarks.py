@@ -11,15 +11,30 @@ import progressbar
 import numpy as np
 import csv
 
-sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
+import matplotlib.font_manager
+# fpaths = matplotlib.font_manager.findSystemFonts()
+# for i in fpaths:
+#     try:
+#         f = matplotlib.font_manager.get_font(i)
+#         print(f.family_name)
+#     except:
+#         pass
 
 import environments
 import demos
-
+"""
+0: toy example
+1: door env
+2: search and rescue env
+3: observation point env
+4: parking env
+"""
+ENV = 2
+CONTINUE = True
 ITERATIONS_START = 0
-ITERATIONS_END = 1000
-ITERATIONS_STEP = 50
-NUM_PARALLEL = 1
+ITERATIONS_END = 6000
+ITERATIONS_STEP = 100
+NUM_PARALLEL = 4
 
 
 def calc_cost(path):
@@ -41,26 +56,6 @@ def vector_to_string(vec):
     s = s[0:-2]
     s += "]"
     return s
-
-
-def load_graph_from_pickle(name):
-    path = "./benchmark_data/" + name
-    files = [f for f in os.listdir(path)]
-    fig = (pickle.load(open(os.path.join(path, files[0]), "rb")))
-    axes = fig.get_axes()
-    axes[0].set_xlabel('iterations', fontsize=14)
-    axes[0].set_ylabel('solution cost', fontsize=14)
-    axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
-    axes[0].legend()
-    axes[1].set_xlabel('iterations', fontsize=14)
-    axes[1].set_ylabel('success [%]', fontsize=14)
-    axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
-    axes[1].legend()
-    fig.tight_layout()
-
-    # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
-    plt.subplots_adjust(hspace=0.3)
-    plt.show()
 
 
 def load_graph_from_data(name):
@@ -86,28 +81,40 @@ def load_graph_from_data(name):
         for row in reader:
             suc_def.append([float(value) for value in row])
 
+    plt.rcParams["font.family"] = 'Liberation Serif'
     fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
-    axes[0].plot([c[0] for c in costs_def], [c[2] for c in costs_def], label="default")
-    axes[1].plot([c[0] for c in suc_def], [c[1] for c in suc_def], label="default")
-    axes[0].plot([c[0] for c in costs_cam], [c[2] for c in costs_cam], label="camera")
-    axes[1].plot([c[0] for c in suc_cam], [c[1] for c in suc_cam], label="camera")
+    axes[0].plot([c[0] for c in costs_def], [c[2] for c in costs_def], label="default", color="dodgerblue")
+    axes[1].plot([c[0] for c in suc_def], [c[1] for c in suc_def], label="default",
+                 color="dodgerblue")
+    axes[0].plot([c[0] for c in costs_cam], [c[2] for c in costs_cam], label="camera", color="darkorange")
+    axes[1].plot([c[0] for c in suc_cam], [c[1] for c in suc_cam], label="camera",
+                 color="darkorange")
+
+    axes[0].fill_between([c[0] for c in costs_def], [c[2] - c[3] for c in costs_def],
+                         [c[2] + c[3] for c in costs_def], color="dodgerblue", alpha=0.3, linewidth=0)
+
+    axes[0].fill_between([c[0] for c in costs_cam], [c[2] - c[3] for c in costs_cam],
+                         [c[2] + c[3] for c in costs_cam], color="darkorange", alpha=0.3, linewidth=0)
 
     axes[0].set_xlabel('iterations', fontsize=14)
     axes[0].set_ylabel('solution cost', fontsize=14)
     axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
-    axes[0].legend()
+    y_scale = max(np.max(np.array(costs_def)[:, 5]), np.max(np.array(costs_cam)[:, 5])) + 0.5
+    axes[0].set_ylim(-0.05, y_scale)
+    axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
+                   fancybox=True, shadow=True)
     axes[1].set_xlabel('iterations', fontsize=14)
     axes[1].set_ylabel('success [%]', fontsize=14)
     axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
-    axes[1].legend()
-
+    axes[1].set_ylim(-0.05, 1.05)
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.3)
+    fig.savefig(path + "/" + name + ".png")
     plt.show()
 
 
 class Benchmark:
-    def __init__(self, num_parallel, env, continue_wip=False):
+    def __init__(self, num_parallel, env, continue_wip, name):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -117,6 +124,7 @@ class Benchmark:
 
         self.num_parallel = num_parallel
         self.env = env
+        self.name = name
 
         self.res = []
         for i in range(num_parallel):
@@ -130,7 +138,7 @@ class Benchmark:
 
         self.continue_wip = continue_wip
 
-        path = "./benchmark_data/wip"
+        path = "./benchmark_data/wip_" + self.name + "_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP)
         try:
             os.mkdir(path)
         except OSError:
@@ -218,7 +226,7 @@ class Benchmark:
         bar = progressbar.ProgressBar(max_value=self.num_parallel,
                                       widgets=widgets).start()
 
-        path = "./benchmark_data/wip"
+        path = "./benchmark_data/wip_" + self.name + "_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP)
         wip = self.continue_wip
         if not os.path.exists(path + "/costs_" + sampler + ".csv"):
             wip = False
@@ -293,7 +301,11 @@ class Benchmark:
         self.res = np.delete(self.res, del_idx, axis=1)
 
         if len(self.res[0]) > 0:
-            self.res_avg.append(np.nanmean(self.res, axis=0))
+            mean = np.nanmean(self.res, axis=0)
+            r = np.append(mean, np.transpose([np.nanstd(self.res, axis=0)[:,2]]), axis=1)
+            r = np.append(r, np.transpose([np.nanmin(self.res, axis=0)[:,2]]), axis=1)
+            r = np.append(r, np.transpose([np.nanmax(self.res, axis=0)[:,2]]), axis=1)
+            self.res_avg.append(r)
         else:
             self.res_avg.append([[0, 0, 0]])
 
@@ -332,13 +344,25 @@ class Benchmark:
             for row in self.success_avg[1]:
                 writer.writerow(row)
 
-    def create_graph(self, name, save):
+    def create_graph(self, save):
+        plt.rcParams["font.family"] = 'Liberation Serif'
         fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
-        axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default")
-        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default")
-        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera")
-        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera")
+        axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default", color="dodgerblue")
+        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default", color="dodgerblue")
+        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera", color="darkorange")
+        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera", color="darkorange")
 
+        axes[0].fill_between([c[0] for c in self.res_avg[0]], [c[2] - c[3] for c in self.res_avg[0]],
+                             [c[2] + c[3] for c in self.res_avg[0]], color="dodgerblue", alpha=0.3, linewidth=0)
+        # axes[0].fill_between([c[0] for c in self.res_avg[0]], [c[4] for c in self.res_avg[0]],
+        #                      [c[5] for c in self.res_avg[0]], color="dodgerblue", alpha=0.2, linewidth=0)
+
+        axes[0].fill_between([c[0] for c in self.res_avg[1]], [c[2] - c[3] for c in self.res_avg[1]],
+                             [c[2] + c[3] for c in self.res_avg[1]], color="darkorange", alpha=0.3, linewidth=0)
+        # axes[0].fill_between([c[0] for c in self.res_avg[1]], [c[4] for c in self.res_avg[1]],
+        #                      [c[5] for c in self.res_avg[1]], color="darkorange", alpha=0.2, linewidth=0)
+
+        name = self.name + "_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL)
         if save:
             path = "./benchmark_data/" + name
             self.save_data(name)
@@ -346,26 +370,40 @@ class Benchmark:
         axes[0].set_xlabel('iterations', fontsize=14)
         axes[0].set_ylabel('solution cost', fontsize=14)
         axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
-        # axes[0].set_title(name, fontsize=16)
-        axes[0].legend()
+        y_scale = max(np.max(self.res_avg[0][:, 5]), np.max(self.res_avg[1][:, 5])) + 0.5
+        axes[0].set_ylim(-0.05, y_scale)
+        axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
+          fancybox=True, shadow=True)
         axes[1].set_xlabel('iterations', fontsize=14)
         axes[1].set_ylabel('success [%]', fontsize=14)
         axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
-        # axes[1].set_title(name, fontsize=16)
-        axes[1].legend()
+        axes[1].set_ylim(-0.05, 1.05)
         fig.tight_layout()
-
-        # plt.title(name, fontsize=16, fontname='DejaVu Serif', loc='center', y=2, pad=3)
         plt.subplots_adjust(hspace=0.3)
-        fig.savefig(path + "/" + name + ".png")
+        if save:
+            fig.savefig(path + "/" + name + ".png")
         plt.show()
 
 
 if __name__ == '__main__':
     if True:
         p.connect(p.GUI)
-        env = environments.RoombaEnv()
-        b = Benchmark(NUM_PARALLEL, env, continue_wip=False)
+        if ENV == 0:
+            env = environments.RoombaEnv()
+            name = "toy"
+        elif ENV == 1:
+            env = environments.RoombaDoorEnv()
+            name = "door"
+        elif ENV == 2:
+            env = environments.SearchAndRescueSimpleEnv()
+            name = "sar"
+        elif ENV == 3:
+            env = environments.MobileArmObservationPointEnv()
+            name = "obs"
+        elif ENV == 4:
+            env = environments.ParkingCornerEnv()
+            name = "parking"
+        b = Benchmark(NUM_PARALLEL, env, CONTINUE, name)
 
         devnull = open('/dev/null', 'w')
         oldstdout_fno = os.dup(sys.stdout.fileno())
@@ -374,8 +412,6 @@ if __name__ == '__main__':
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
-        b.create_graph("obs_" + str(ITERATIONS_START) + "-" + str(ITERATIONS_END) + "-" + str(ITERATIONS_STEP) + "-" + str(NUM_PARALLEL), True)
-    elif True:
-        load_graph_from_data("roomba_simple_80-120-40-2")
+        b.create_graph(True)
     else:
-        load_graph_from_pickle("roomba_simple_80-120-40-2")
+        load_graph_from_data("roomba_0-100-10-3")
