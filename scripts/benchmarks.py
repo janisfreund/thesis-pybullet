@@ -58,7 +58,7 @@ def vector_to_string(vec):
     return s
 
 
-def load_graph_from_data(name):
+def load_graph_from_data(name, show_legend):
     path = "./benchmark_data/" + name
     costs_cam = []
     with open(path + "/costs_camera.csv", "r") as file:
@@ -83,26 +83,27 @@ def load_graph_from_data(name):
 
     plt.rcParams["font.family"] = 'Liberation Serif'
     fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
-    axes[0].plot([c[0] for c in costs_def], [c[2] for c in costs_def], label="default", color="dodgerblue")
-    axes[1].plot([c[0] for c in suc_def], [c[1] for c in suc_def], label="default",
+    axes[0].plot([c[0] for c in costs_def], [c[2] for c in costs_def], label="default state sampler", color="dodgerblue")
+    axes[1].plot([c[0] for c in suc_def], [c[1] for c in suc_def], label="default state sampler",
                  color="dodgerblue")
-    axes[0].plot([c[0] for c in costs_cam], [c[2] for c in costs_cam], label="camera", color="darkorange")
-    axes[1].plot([c[0] for c in suc_cam], [c[1] for c in suc_cam], label="camera",
+    axes[0].plot([c[0] for c in costs_cam], [c[2] for c in costs_cam], label="camera state sampler", color="darkorange")
+    axes[1].plot([c[0] for c in suc_cam], [c[1] for c in suc_cam], label="camera state sampler",
                  color="darkorange")
 
     axes[0].fill_between([c[0] for c in costs_def], [c[2] - c[3] for c in costs_def],
-                         [c[2] + c[3] for c in costs_def], color="dodgerblue", alpha=0.3, linewidth=0)
+                         [c[2] + c[3] for c in costs_def], color="dodgerblue", alpha=0.3, linewidth=0, label="default state sampler standard deviation")
 
     axes[0].fill_between([c[0] for c in costs_cam], [c[2] - c[3] for c in costs_cam],
-                         [c[2] + c[3] for c in costs_cam], color="darkorange", alpha=0.3, linewidth=0)
+                         [c[2] + c[3] for c in costs_cam], color="darkorange", alpha=0.3, linewidth=0, label="camera state sampler standard deviation")
 
     axes[0].set_xlabel('iterations', fontsize=14)
     axes[0].set_ylabel('solution cost', fontsize=14)
     axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
     y_scale = max(np.max(np.array(costs_def)[:, 5]), np.max(np.array(costs_cam)[:, 5])) + 0.5
     axes[0].set_ylim(-0.05, y_scale)
-    axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
-                   fancybox=True, shadow=True)
+    if show_legend:
+        axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
+                       fancybox=True, shadow=True)
     axes[1].set_xlabel('iterations', fontsize=14)
     axes[1].set_ylabel('success [%]', fontsize=14)
     axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
@@ -344,21 +345,21 @@ class Benchmark:
             for row in self.success_avg[1]:
                 writer.writerow(row)
 
-    def create_graph(self, save):
+    def create_graph(self, save, show_legend):
         plt.rcParams["font.family"] = 'Liberation Serif'
         fig, axes = plt.subplots(2, 1, figsize=(8, 8), dpi=300)
-        axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default", color="dodgerblue")
-        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default", color="dodgerblue")
-        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera", color="darkorange")
-        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera", color="darkorange")
+        axes[0].plot([c[0] for c in self.res_avg[0]], [c[2] for c in self.res_avg[0]], label="default state sampler", color="dodgerblue")
+        axes[1].plot([c[0] for c in self.success_avg[0]], [c[1] for c in self.success_avg[0]], label="default state sampler", color="dodgerblue")
+        axes[0].plot([c[0] for c in self.res_avg[1]], [c[2] for c in self.res_avg[1]], label="camera state sampler", color="darkorange")
+        axes[1].plot([c[0] for c in self.success_avg[1]], [c[1] for c in self.success_avg[1]], label="camera state sampler", color="darkorange")
 
         axes[0].fill_between([c[0] for c in self.res_avg[0]], [c[2] - c[3] for c in self.res_avg[0]],
-                             [c[2] + c[3] for c in self.res_avg[0]], color="dodgerblue", alpha=0.3, linewidth=0)
+                             [c[2] + c[3] for c in self.res_avg[0]], color="dodgerblue", alpha=0.3, linewidth=0, label="default state sampler standard deviation")
         # axes[0].fill_between([c[0] for c in self.res_avg[0]], [c[4] for c in self.res_avg[0]],
         #                      [c[5] for c in self.res_avg[0]], color="dodgerblue", alpha=0.2, linewidth=0)
 
         axes[0].fill_between([c[0] for c in self.res_avg[1]], [c[2] - c[3] for c in self.res_avg[1]],
-                             [c[2] + c[3] for c in self.res_avg[1]], color="darkorange", alpha=0.3, linewidth=0)
+                             [c[2] + c[3] for c in self.res_avg[1]], color="darkorange", alpha=0.3, linewidth=0, label="camera state sampler standard deviation")
         # axes[0].fill_between([c[0] for c in self.res_avg[1]], [c[4] for c in self.res_avg[1]],
         #                      [c[5] for c in self.res_avg[1]], color="darkorange", alpha=0.2, linewidth=0)
 
@@ -372,8 +373,9 @@ class Benchmark:
         axes[0].set_xlim(ITERATIONS_START, ITERATIONS_END)
         y_scale = max(np.max(self.res_avg[0][:, 5]), np.max(self.res_avg[1][:, 5])) + 0.5
         axes[0].set_ylim(-0.05, y_scale)
-        axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
-          fancybox=True, shadow=True)
+        if show_legend:
+            axes[0].legend(loc='upper left', bbox_to_anchor=(0., 1.3),
+              fancybox=True, shadow=True, ncol=2)
         axes[1].set_xlabel('iterations', fontsize=14)
         axes[1].set_ylabel('success [%]', fontsize=14)
         axes[1].set_xlim(ITERATIONS_START, ITERATIONS_END)
@@ -412,6 +414,6 @@ if __name__ == '__main__':
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "default")
         b.reset()
         b.benchmark(ITERATIONS_START, ITERATIONS_END, ITERATIONS_STEP, "camera")
-        b.create_graph(True)
+        b.create_graph(True, True)
     else:
-        load_graph_from_data("roomba_0-100-10-3")
+        load_graph_from_data("roomba_0-100-10-3", True)
