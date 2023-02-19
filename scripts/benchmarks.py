@@ -29,12 +29,12 @@ import demos
 3: observation point env
 4: parking env
 """
-ENV = 2
-CONTINUE = True
+ENV = 4
+CONTINUE = False
 ITERATIONS_START = 0
-ITERATIONS_END = 6000
-ITERATIONS_STEP = 100
-NUM_PARALLEL = 4
+ITERATIONS_END = 10000
+ITERATIONS_STEP = 250
+NUM_PARALLEL = 3
 
 
 def calc_cost(path):

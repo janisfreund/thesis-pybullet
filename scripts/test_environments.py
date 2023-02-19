@@ -93,6 +93,6 @@ class Test:
 
 if __name__ == '__main__':
     p.connect(p.GUI)
-    env = environments.MobileArmObservationPointEnv()
+    env = environments.ParkingCornerEnv()
     test = Test(env)
     test.test()

@@ -210,7 +210,9 @@ class PbOMPL():
 
         self.si = self.ss.getSpaceInformation()
 
-        if (space == "car" or len(self.goal_states) == 0):
+        if (space == "car"):
+            self.si.initWorld(len(self.poobjects), False, True)
+        elif (len(self.goal_states) == 0):
             self.si.initWorld(len(self.poobjects), False)
         else:
             self.si.initWorld(len(self.poobjects), True)
@@ -1118,7 +1120,7 @@ class PbOMPL():
     # ------------
 
     def state_to_list(self, state):
-        if self.space_name == "car" and not isinstance(state, list):
+        if self.space_name == "car" and not isinstance(state, list) and not isinstance(state, ou.vectorDouble):
             x = state.getX()
             y = state.getY()
             theta = state.getYaw()

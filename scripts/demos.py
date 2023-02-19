@@ -15,7 +15,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 0
+DEMO_SELECTION = 9
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -164,6 +164,7 @@ class Demo:
 
 
 if __name__ == '__main__':
+    # time.sleep(10)
     p.connect(p.GUI)
 
     if DEMO_SELECTION == -1:
@@ -246,7 +247,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 8:
         # simple parking demo
         env = environments.ParkingEnv()
-        demo = Demo(env, 30, -1, 1000)
+        demo = Demo(env, 0, 1000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
@@ -254,7 +255,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
-        demo = Demo(env, 0, 10000, 1000, seed=1)
+        demo = Demo(env, 0, 25000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()

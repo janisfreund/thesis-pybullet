@@ -295,7 +295,7 @@ class ParkingEnv(Environment):
         self.goal = [2.5, 0.8, math.radians(90)]
 
         self.space_name = "car"
-        self.bounds = [[-2, 6], [-2, 6]]
+        self.bounds = [[0, 7], [-3, 2]]
 
         # add parking lots
         self.add_obstacle_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
@@ -313,13 +313,13 @@ class ParkingEnv(Environment):
 
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [3.5, 0.8, 0], [0, 0, 1, 1], [0., 1., 0., 1.])
-        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [4.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 1., 1.])
-        self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0.5, 0., 0.5, 1.])
+        # self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [4.5, 0.8, 0], [0, 0, 1, 1], [0., 0., 1., 1.])
+        # self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [5.5, 0.8, 0], [0, 0, 1, 1], [0.5, 0., 0.5, 1.])
 
         self.add_goal_state([2.5, 0.8, 0.5 * math.pi])
         self.add_goal_state([3.5, 0.8, 0.5 * math.pi])
-        self.add_goal_state([4.5, 0.8, 0.5 * math.pi])
-        self.add_goal_state([5.5, 0.8, 0.5 * math.pi])
+        # self.add_goal_state([4.5, 0.8, 0.5 * math.pi])
+        # self.add_goal_state([5.5, 0.8, 0.5 * math.pi])
 
 
 class ParkingCornerEnv(Environment):
@@ -337,7 +337,7 @@ class ParkingCornerEnv(Environment):
         self.goal = [2.5, 0.8, math.radians(90)]
 
         self.space_name = "car"
-        self.bounds = [[0, 11], [-10, 3]]
+        self.bounds = [[0, 12], [-10, 2]]
 
         # add parking lots
         self.add_obstacle_box([2, 0.8, 0], [0.05, 0.8, 0.05], [0.5, 0.5, 0.5, 1], False)
@@ -353,9 +353,9 @@ class ParkingCornerEnv(Environment):
         self.add_obstacle_box([8, -7.95, 0], [0.5, 0.05, 0.05], [0.5, 0.5, 0.5, 1], False)
 
         # add street limits
-        self.add_obstacle_box([4, 2, 0.5], [6, 0.2, 0.5], [0.5, 0.5, 0.5, 1])
+        self.add_obstacle_box([5, 2, 0.5], [7, 0.2, 0.5], [0.5, 0.5, 0.5, 1])
         self.add_obstacle_box([2.5, -3, 0.5], [4.5, 0.2, 0.5], [0.5, 0.5, 0.5, 1])
-        self.add_obstacle_box([9.8, -4, 0.5], [0.2, 6, 0.5], [0.5, 0.5, 0.5, 1])
+        self.add_obstacle_box([11.8, -4, 0.5], [0.2, 6, 0.5], [0.5, 0.5, 0.5, 1])
         self.add_obstacle_box([7.2, -6.4, 0.5], [0.2, 3.6, 0.5], [0.5, 0.5, 0.5, 1])
 
         self.add_poobject_mesh("../models/car/car_jeep_no_cam.urdf", [2.5, 0.8, 0], [0, 0, 1, 1], [1., 0., 0., 1.])
