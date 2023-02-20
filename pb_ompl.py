@@ -559,9 +559,10 @@ class PbOMPL():
                 sol_path_geometric.interpolateBase(interpolate_num, 2)
                 last_state = sol_path_geometric.getState(interpolate_num - 1)
                 # last_state = sol_path_geometric.getStates()[-1]
-                for n in range(max_len - interpolate_num):
-                    if len(sol_path_geometric.getStates()) < max_len:
-                        sol_path_geometric.append(last_state)
+                if self.space_name != "car":
+                    for n in range(max_len - interpolate_num):
+                        if len(sol_path_geometric.getStates()) < max_len:
+                            sol_path_geometric.append(last_state)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
                 # print("First entry: " + str(sol_path_list[0]))
@@ -941,6 +942,7 @@ class PbOMPL():
                     path_points = p.addUserDebugPoints(points, point_colors, 5, 0)
                 for item in obs_points:
                     p.removeBody(item)
+                    obs_points.remove(item)
                 for i, state in enumerate(self.ss.getProblemDefinition().getObservationPointStates()):
                     observations = []
                     for observation in self.ss.getProblemDefinition().getObservationPointObservations()[i]:

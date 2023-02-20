@@ -255,7 +255,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
-        demo = Demo(env, 0, 25000, 1000, seed=1)
+        demo = Demo(env, 0, 1000, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
