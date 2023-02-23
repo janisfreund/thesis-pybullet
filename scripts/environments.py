@@ -209,10 +209,10 @@ class MobileArmObservationPointEnv(Environment):
         self.space_name = "real"
         self.bounds = [[-5.5, 5.5], [-5.5, 5.5]]
 
-        self.add_obstacle_box([-2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
-        self.add_obstacle_box([2.2, -1.5, 1.5], [1.7, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
-        self.add_obstacle_box([0, -1.5, 0.5], [0.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
-        self.add_obstacle_box([0, -1.5, 2.5], [0.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([-2.08, -1.5, 1.5], [1.82, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([2.08, -1.5, 1.5], [1.82, 0.1, 1.5], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([0, -1.5, 0.62], [0.5, 0.1, 0.62], [0.5, 0.5, 0.5, 1.])
+        self.add_obstacle_box([0, -1.5, 2.38], [0.5, 0.1, 0.62], [0.5, 0.5, 0.5, 1.])
         self.add_obstacle_box([-3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
         self.add_obstacle_box([3.5, -1.5, 2.5], [1.5, 0.1, 0.5], [0.5, 0.5, 0.5, 1.])
         self.add_obstacle_box([0, 4, 0.5], [0.1, 5.5, 0.5], [0.5, 0.5, 0.5, 1.])

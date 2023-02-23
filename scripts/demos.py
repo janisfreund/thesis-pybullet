@@ -57,7 +57,7 @@ def path_to_list(path):
 
 
 class Demo:
-    def __init__(self, env, termination_time, termination_iterations, interpolation_num, seed=-1, sampler="camera"):
+    def __init__(self, env, termination_time, termination_iterations, interpolation_num, seed=-1, sampler="camera", init_belief=[]):
         p.setTimeStep(1. / 240.)
         self.projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -71,7 +71,7 @@ class Demo:
                                                 self.env.poobjects_properties,
                                                 self.robot.cam_link_id, self.robot.cam_orientation,
                                                 self.env.goal_states, self.env.space_name, self.env.bounds,
-                                                termination_time, interpolation_num)
+                                                termination_time, interpolation_num, init_belief)
 
         self.pb_ompl_interface.set_obstacles(self.env.obstacles)
         self.pb_ompl_interface.set_planner("Partial")
@@ -168,13 +168,11 @@ if __name__ == '__main__':
     p.connect(p.GUI)
 
     if DEMO_SELECTION == -1:
-        env1 = environments.RoombaEnv()
-        demo1 = Demo(env1, 0, 200, 1000, seed=1, sampler="camera")
-        demo1.init_benchmark_mode(130, 180, 20)
-        demo1.plan()
-        # demo1.print_costs()
-        costs = demo1.get_benchmark_results()
-        print(costs)
+        env = environments.ParkingCornerEnv()
+        demo = Demo(env, 0, 50, 1000, seed=4, sampler="default")
+        demo.plan()
+        demo.draw_start([0, 0, 0, 1])
+        demo.demo_consecutive()
 
     if DEMO_SELECTION == 0:
         # simple roomba demo
@@ -223,7 +221,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env, 0, 2000, 1000, seed=1)
+        demo = Demo(env, 0, 1000, 1000, seed=5)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)

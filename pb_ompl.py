@@ -145,7 +145,7 @@ class PbCarSpace(ob.ReedsSheppStateSpace):
         self.state_sampler = state_sampler
 
 class PbOMPL():
-    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real", bounds_xy=[[-1, 1], [-1, 1]], planning_time=30, interpolation_num=1000) -> None:
+    def __init__(self, robot, obstacles = [], poobjects = [], poobjects_properties = [], camera_link = 10, camera_orientation = [[1], [0], [0]], goal_states = [], space="real", bounds_xy=[[-1, 1], [-1, 1]], planning_time=30, interpolation_num=1000, init_belief=[]) -> None:
         '''
         Args
             robot: A PbOMPLRobot instance.
@@ -210,12 +210,24 @@ class PbOMPL():
 
         self.si = self.ss.getSpaceInformation()
 
+        b = ou.vectorDouble()
+        for i in range(len(init_belief)):
+            b.append(init_belief[i])
         if (space == "car"):
-            self.si.initWorld(len(self.poobjects), False, True)
+            if (len(init_belief) == 0):
+                self.si.initWorld(len(self.poobjects), False, True)
+            else:
+                self.si.initWorld(len(self.poobjects), False, b, True)
         elif (len(self.goal_states) == 0):
-            self.si.initWorld(len(self.poobjects), False)
+            if (len(init_belief) == 0):
+                self.si.initWorld(len(self.poobjects), False)
+            else:
+                self.si.initWorld(len(self.poobjects), False, b, False)
         else:
-            self.si.initWorld(len(self.poobjects), True)
+            if (len(init_belief) == 0):
+                self.si.initWorld(len(self.poobjects), True)
+            else:
+                self.si.initWorld(len(self.poobjects), True, b, False)
 
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
         #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
