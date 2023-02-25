@@ -525,6 +525,7 @@ class PbOMPL():
 
         # attempt to solve the problem within allowed planning time
         solved = self.ss.solve(self.planning_time)
+        self.update_poobjects()
         res = False
         all_sol_path_lists = []
         self.tree_path_lists = []

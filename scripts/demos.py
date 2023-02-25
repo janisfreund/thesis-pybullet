@@ -177,7 +177,7 @@ if __name__ == '__main__':
     if DEMO_SELECTION == 0:
         # simple roomba demo
         env = environments.RoombaEnv()
-        demo = Demo(env, 0, 140, 1000, seed=1, sampler="camera")
+        demo = Demo(env, 0, 300, 1000, seed=1, sampler="camera")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
