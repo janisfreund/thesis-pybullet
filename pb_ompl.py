@@ -304,7 +304,7 @@ class PbOMPL():
     # may be changed later to location
     # TODO don't hardcode camera properties
     def target_found(self, state):
-        # self.update_poobjects()
+        self.update_poobjects()
 
         visible_objects = ou.vectorInt()
 
@@ -373,17 +373,13 @@ class PbOMPL():
         for i, objectState in enumerate(worldState):
             # object exists
             if objectState == 1:
-                # check if object exists
-                if self.poobjects[i] == -1:
-                    box_id = p.createMultiBody(baseMass=0, baseVisualShapeIndex=self.poobjects_properties[i][0],
-                                               baseCollisionShapeIndex=self.poobjects_properties[i][1], basePosition=self.poobjects_properties[i][2])
-                    self.poobjects[i] = box_id
+                color = p.getVisualShapeData(self.poobjects[i], -1)[0][7]
+                new_color = list(color[:-1]) + [1]
+                p.changeVisualShape(self.poobjects[i], -1, rgbaColor=new_color)
             else:
-                try:
-                    p.removeBody(self.poobjects[i])
-                    self.poobjects[i] = -1
-                except:
-                    pass
+                color = p.getVisualShapeData(self.poobjects[i], -1)[0][7]
+                new_color = list(color[:-1]) + [0]
+                p.changeVisualShape(self.poobjects[i], -1, rgbaColor=new_color)
 
     def update_poobjects_probability(self, p_world):
         for i, pro in enumerate(self.poobjects_properties):

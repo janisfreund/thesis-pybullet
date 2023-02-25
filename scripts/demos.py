@@ -15,7 +15,7 @@ import pb_ompl
 import robots as rb
 import environments
 
-DEMO_SELECTION = 9
+DEMO_SELECTION = 0
 """
 0: Roomba simple
 1: Roomba doors <-
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 1:
         # simple door demo
         env = environments.RoombaDoorEnv()
-        demo = Demo(env, 0, 1300, 1000, seed=1)
+        demo = Demo(env, 0, 3000, 1000, seed=1, sampler="camera")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 5:
         # mobile arm with observation point demo
         env = environments.MobileArmObservationPointEnv()
-        demo = Demo(env, 0, 1000, 1000, seed=5)
+        demo = Demo(env, 0, 4000, 1000, seed=2, sampler="default")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 6:
         # simple search and rescue demo
         env = environments.SearchAndRescueSimpleEnv()
-        demo = Demo(env, 0, 3000, 1000, seed=1)
+        demo = Demo(env, 0, 6000, 1000, seed=1, sampler="default")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)
@@ -245,7 +245,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 8:
         # simple parking demo
         env = environments.ParkingEnv()
-        demo = Demo(env, 0, 1000, 1000, seed=1)
+        demo = Demo(env, 0, 3000, 1000, seed=1, sampler="camera")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 9:
         # corner parking demo
         env = environments.ParkingCornerEnv()
-        demo = Demo(env, 0, 1000, 1000, seed=1)
+        demo = Demo(env, 0, 3000, 1000, seed=2, sampler="camera")
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_consecutive()

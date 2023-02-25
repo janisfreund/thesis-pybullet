@@ -167,12 +167,12 @@ if __name__ == '__main__':
     # demo.add_plane()
     # demo.draw_robot(pos="start")
 
-    env = environments.SearchAndRescueSimpleEnv()
-    demo = EnvImg(env, 2000, 1000, seed=42, sampler="camera")
-    demo.draw_paths_parallel(True)
-    demo.draw_observation_points()
-    demo.add_plane()
-    demo.draw_robot(pos="start")
+    # env = environments.SearchAndRescueSimpleEnv()
+    # demo = EnvImg(env, 2000, 1000, seed=42, sampler="camera")
+    # demo.draw_paths_parallel(True)
+    # demo.draw_observation_points()
+    # demo.add_plane()
+    # demo.draw_robot(pos="start")
 
     # env = environments.SearchAndRescueSimpleEnv()
     # demo = EnvImg(env, 2000, 1000, seed=42, sampler="camera")
