@@ -202,13 +202,15 @@ if __name__ == '__main__':
     # demo = EnvImg(env, 2000, 1000, seed=42, sampler="camera")
     # demo.draw_paths_single()
 
-    # env = environments.RoombaEnv()
-    # demo = EnvImg(env, 1000, 1000, seed=42, sampler="camera")
-    # demo.draw_paths_parallel(False)
-    # demo.draw_observation_points()
-    # demo.draw_goal([0, 0, 0, 1])
-    # demo.add_plane()
+    env = environments.RoombaEnv()
+    demo = EnvImg(env, 1000, 1000, seed=42, sampler="camera")
+    demo.draw_paths_parallel(False)
+    demo.draw_goal([0, 0, 0, 1])
+    demo.add_plane()
     # demo.draw_robot(pos="start")
+    demo.remove_robot()
+    demo.draw_start([0, 0, 0, 1])
+    demo.draw_observation_points()
 
 
     # demo.draw_robot(pos="pogoal", idx=0)

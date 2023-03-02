@@ -10,8 +10,6 @@ except ImportError:
     from os.path import abspath, dirname, join
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'thesis-ompl/ompl/py-bindings'))
-    # sys.path.insert(0, join(dirname(abspath(__file__)), '../whole-body-motion-planning/src/ompl/py-bindings'))
-    # print(sys.path)
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
@@ -156,7 +154,6 @@ class PbOMPL():
         self.obstacles = obstacles
         self.poobjects = poobjects
         self.poobjects_properties = poobjects_properties
-        # print(self.obstacles)
         self.camera_link = camera_link
         self.camera_orientation = camera_orientation
         self.goal_states = goal_states
@@ -185,7 +182,6 @@ class PbOMPL():
             bounds = ob.RealVectorBounds(robot.num_dim)
             joint_bounds = self.robot.get_joint_bounds()
             for i, bound in enumerate(joint_bounds):
-                # TODO hardcoded for debugging
                 if i == 0 or i == 1:
                     bounds.setLow(i, bounds_xy[i][0])
                     bounds.setHigh(i, bounds_xy[i][1])
@@ -230,19 +226,10 @@ class PbOMPL():
                 self.si.initWorld(len(self.poobjects), True, b, False)
 
         self.ss.setStateValidityAndTargetChecker(ob.StateValidityCheckerFn(self.is_state_valid), ob.TargetCheckerFn(self.target_found), self.si.getWorld())
-        #self.ss.setStateValidityChecker(ob.StateValidityCheckerFn(self.is_state_valid))
-        # self.si.setStateValidityCheckingResolution(0.005)
-        # self.collision_fn = pb_utils.get_collision_fn(self.robot_id, self.robot.joint_idx, self.obstacles, [], True, set(),
-        #                                                 custom_limits={}, max_distance=0, allow_collision_links=[])
 
         self.set_obstacles(obstacles)
 
-        # set POObjects
-        # pos = np.array([0, 0])
-        # len = np.array([0.1, 0.1])
-        # self.si.addObject(pos, len)
-
-        self.set_planner("Partial") # RRT by default
+        self.set_planner("Partial")
 
     def set_obstacles(self, obstacles):
         self.obstacles = obstacles
@@ -262,26 +249,15 @@ class PbOMPL():
     def is_state_valid(self, state, world):
         self.counter += 1
 
-        # set poobjects to state of the world
-        # self.update_poobjects()
-
-        # satisfy bounds TODO
-        # Should be unecessary if joint bounds is properly set
-
         self.robot.set_state(self.state_to_list(state))
         # check self-collision
         for link1, link2 in self.check_link_pairs:
             if utils.pairwise_link_collision(self.robot_id, link1, self.robot_id, link2):
-                # print(get_body_name(body), get_link_name(body, link1), get_link_name(body, link2))
-                # print("Self-collision!")
                 return False
 
         # check collision against environment
         for body1, body2 in self.check_body_pairs:
             if utils.pairwise_collision(body1, body2):
-                # print('body collision', body1, body2)
-                # print(get_body_name(body1), get_body_name(body2))
-                # print("Robot collides with normal object!")
                 return False
 
         # check collision against partially observable objects
@@ -292,27 +268,16 @@ class PbOMPL():
         po_pairs = list(product(self.moving_bodies, existing_objects))
         for body1, body2 in po_pairs:
             if utils.pairwise_collision(body1, body2):
-                # print("Robot collides with poobject!")
-                # time.sleep(1)
                 return False
 
         # print("State is valid!")
         return True
 
     # process camera image
-    # for now returns true/false depending on whether the object was found
-    # may be changed later to location
-    # TODO don't hardcode camera properties
     def target_found(self, state):
         self.update_poobjects()
 
         visible_objects = ou.vectorInt()
-
-        # setting the state seems not to be necessary
-        # q = []
-        # for i in range(self.robot.num_dim):
-        #     q.append(state[i])
-        # self.robot.set_state(q)
 
         projectionMatrix = p.computeProjectionMatrixFOV(
             fov=45.0,
@@ -345,11 +310,6 @@ class PbOMPL():
         target_mask_blue = cv2.inRange(rgbImg, (0, 0, 100, 0), (10, 10, 255, 255))
         target_mask_purple = cv2.inRange(rgbImg, (80, 0, 80, 0), (180, 10, 180, 255))
 
-
-        # print('State: {}'.format(self.state_counter))
-        #
-        # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
-        # cv2.imwrite('./camera/mask_{}.jpg'.format(self.state_counter), target_mask)
         self.state_counter += 1
 
         if cv2.countNonZero(target_mask_red) > 0 and len(self.poobjects) > 0:
@@ -361,11 +321,6 @@ class PbOMPL():
         elif cv2.countNonZero(target_mask_purple) > 0 and len(self.poobjects) > 3:
             visible_objects.append(3)
 
-        # camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
-        # time.sleep(5)
-        # p.removeUserDebugItem(camera_line_id)
-
-        # cv2.imwrite('./camera/rgb_{}.jpg'.format(self.state_counter), rgbImg)
         return visible_objects
 
     def update_poobjects(self):
@@ -389,7 +344,6 @@ class PbOMPL():
                 new_color[3] = p_world[i]
                 p.changeVisualShape(pro[0], -1, rgbaColor=new_color)
             else:
-                # TODO why +2 to index
                 old_color = p.getVisualShapeData(pro[0] + 2)[0][7]
                 new_color = list(old_color)
                 new_color[3] = p_world[i]
@@ -517,12 +471,6 @@ class PbOMPL():
         for goal in self.goal_states:
             self.ss.addGoalState(goal)
 
-        # shape = p.getVisualShapeData(self.robot.id)
-        # joints = p.getNumJoints(self.robot.id)
-        # info = p.getBodyInfo(self.robot.id)
-        # for id in range(p.getNumJoints(self.robot.id)):
-        #     print(p.getJointInfo(self.robot.id, id))
-
         # attempt to solve the problem within allowed planning time
         solved = self.ss.solve(self.planning_time)
         self.update_poobjects()
@@ -548,11 +496,7 @@ class PbOMPL():
                 lens.append(self.calc_path_len(sol_path_list))
                 if len(sol_path_list) > max_len:
                     max_len = len(sol_path_list)
-                # print("First entry: " + str(sol_path_list[0]))
-                # print("Last entry: " + str(sol_path_list[-1]) + "\n")
             seg = max_len / np.max(lens)
-
-            # print("-----------------------")
 
             for i in range(num_solutions):
                 sol_path_geometric = self.ss.getIdxSolutionPath(i)
@@ -567,21 +511,13 @@ class PbOMPL():
                 self.finished_idx.append(len(sol_path_list))
                 sol_path_geometric.interpolateBase(interpolate_num, 2)
                 last_state = sol_path_geometric.getState(interpolate_num - 1)
-                # last_state = sol_path_geometric.getStates()[-1]
                 if self.space_name != "car":
                     for n in range(max_len - interpolate_num):
                         if len(sol_path_geometric.getStates()) < max_len:
                             sol_path_geometric.append(last_state)
                 sol_path_states = sol_path_geometric.getStates()
                 sol_path_list = [self.state_to_list(state) for state in sol_path_states]
-                # print("First entry: " + str(sol_path_list[0]))
-                # print("Last entry: " + str(sol_path_list[-1]) + "\n")
-                # for sol_state in sol_path_list:
-                #     print(sol_state[0:2])
-                # print("------------------")
                 all_sol_path_lists.append(sol_path_list)
-                # print(sol_path_list)
-                # print("\n")
 
             res = True
         else:
@@ -835,12 +771,7 @@ class PbOMPL():
                                                         colors)], lineWidth=5))
                     if oldStep != int(p.readUserDebugParameter(stepParam)):
                         for i, robot in enumerate(robots):
-                            # if state_idx < self.finished_idx[i]:
                             robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
-                            # self.robot.set_state(paths_[int(p.readUserDebugParameter(stepParam))][i])
-                            # if drawPaths:
-                            #     p.addUserDebugPoints(pointPositions=[[paths_[int(p.readUserDebugParameter(stepParam))][i][0], paths_[int(p.readUserDebugParameter(stepParam))][i][1], 0]],
-                            #                          pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
                             if i == 0 and camera:
                                 position = p.getLinkState(robot.id, linkid)[4]  # 0/4
                                 r_mat = p.getMatrixFromQuaternion(p.getLinkState(robot.id, linkid)[5])
@@ -860,7 +791,6 @@ class PbOMPL():
                                     viewMatrix=viewMatrix,
                                     projectionMatrix=projectionMatrix)
 
-                                # p.removeAllUserDebugItems()
                                 p.removeUserDebugItem(camera_line_id)
                                 camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
                         oldStep = int(p.readUserDebugParameter(stepParam))
@@ -870,32 +800,16 @@ class PbOMPL():
                     p.setJointMotorControl2(self.robot.id, i, p.POSITION_CONTROL, q[i],force=5 * 240.)
             else:
                 for i, robot in enumerate(robots):
-                    # self.robot.set_state(q[i])
-                    # if state_idx < self.finished_idx[i]:
                     robot.set_state(q[i])
-                    # print("Robot state: " + self.list_to_string(q[i]))
-                    # if drawPaths:
-                    #     p.addUserDebugPoints(pointPositions=[[q[i][0], q[i][1], 0]], pointColorsRGB=[colors[i % len(colors)]], pointSize=7.5, lifeTime=0)
                     if text_ids[i] != None:
                         p.removeUserDebugItem(text_ids[i])
-                    # text_ids[i] = p.addUserDebugText(str(i), [q[i][0] - 0.05, q[i][1] - 0.05, 0.1], [0, 0, 0], 0.2, 0, [ 0, 0, 0, 1 ])
                     if i == 0 and camera:
-                        # shape = p.getVisualShapeData(self.robot.id)
-                        # p.getAxisAngleFromQuaternion(self.robot.id)
-                        # p.getEulerFromQuaternion(self.robot.id)
                         position = p.getLinkState(robot.id, linkid)[4]#0/4
                         r_mat = p.getMatrixFromQuaternion(p.getLinkState(robot.id, linkid)[5])
                         r = np.reshape(r_mat, (-1, 3))
                         orientation = np.dot(r, camera_orientation).flatten().tolist()
                         up = -np.cross(np.array(camera_orientation).flatten(), orientation)
                         target = [x + y for x, y in zip(position, orientation)]
-
-                        # position = p.getVisualShapeData(self.robot.id)[-1][5]
-                        # r = R.from_quat(p.getVisualShapeData(self.robot.id)[-1][6])
-                        # orientation = r.as_euler('zyx', degrees=True)
-
-                        # print('pos: {}'.format(position))
-                        # print('ori: {}'.format(orientation))
 
                         viewMatrix = p.computeViewMatrix(
                             cameraEyePosition=position,
@@ -907,8 +821,6 @@ class PbOMPL():
                             height=224,
                             viewMatrix=viewMatrix,
                             projectionMatrix=projectionMatrix)
-                        # p.getDebugVisualizerCamera()
-                        # p.removeAllUserDebugItems()
                         p.removeUserDebugItem(camera_line_id)
                         camera_line_id = p.addUserDebugLine(position, target, lineColorRGB=[1,0,0], lineWidth=5)
             p.stepSimulation()
@@ -924,13 +836,6 @@ class PbOMPL():
                       path is collision free, this is somewhat acceptable.
         '''
         po_colors = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0.5, 0, 0.5, 1]]
-        # draw path
-        # if drawPaths:
-        #     for i in range(self.ss.getProblemDefinition().getSolutionCount()):
-        #         for n in range(len(self.tree_path_lists[i]) - 1):
-        #             p.addUserDebugLine([self.tree_path_lists[i][n][0], self.tree_path_lists[i][n][1], 0],
-        #                                [self.tree_path_lists[i][n + 1][0], self.tree_path_lists[i][n + 1][1], 0],
-        #                                lineColorRGB=colors[i % len(colors)], lineWidth=5)
         params = []
         for i in range(len(paths)):
             params.append(p.addUserDebugParameter('Path ' + str(i), 0, 1, 0))
@@ -1049,21 +954,12 @@ class PbOMPL():
                 self.robot.set_state(q)
                 if camera:
                     shape = p.getVisualShapeData(self.robot.id)
-                    # p.getAxisAngleFromQuaternion(self.robot.id)
-                    # p.getEulerFromQuaternion(self.robot.id)
                     position = p.getLinkState(self.robot.id, linkid)[4]  # 0/4
                     r_mat = p.getMatrixFromQuaternion(p.getLinkState(self.robot.id, linkid)[5])
                     r = np.reshape(r_mat, (-1, 3))
                     orientation = np.dot(r, camera_orientation).flatten().tolist()
                     up = -np.cross(np.array(camera_orientation).flatten(), orientation)
                     target = [x + y for x, y in zip(position, orientation)]
-
-                    # position = p.getVisualShapeData(self.robot.id)[-1][5]
-                    # r = R.from_quat(p.getVisualShapeData(self.robot.id)[-1][6])
-                    # orientation = r.as_euler('zyx', degrees=True)
-
-                    # print('pos: {}'.format(position))
-                    # print('ori: {}'.format(orientation))
 
                     viewMatrix = p.computeViewMatrix(
                         cameraEyePosition=position,
@@ -1075,7 +971,7 @@ class PbOMPL():
                         height=224,
                         viewMatrix=viewMatrix,
                         projectionMatrix=projectionMatrix)
-                    # p.getDebugVisualizerCamera()
+
                     p.removeAllUserDebugItems()
                     p.addUserDebugLine(position, target, lineColorRGB=[1, 0, 0], lineWidth=5)
             p.stepSimulation()

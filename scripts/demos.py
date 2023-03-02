@@ -196,7 +196,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 2:
         # house roomba demo
         env = environments.RoombaHouseEnv()
-        demo = Demo(env, 200, -1, 1000)
+        demo = Demo(env, 200, -1, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.draw_goal([0, 0, 0, 1])
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 3:
         # simple mobile arm demo
         env = environments.MobileArmEnv()
-        demo = Demo(env, 20, -1, 1000)
+        demo = Demo(env, 20, -1, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 4:
         # mobile arm with walls demo
         env = environments.MobileArmHardEnv()
-        demo = Demo(env, 200, -1, 1000)
+        demo = Demo(env, 200, -1, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1.25, rb.MobileArm)
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     elif DEMO_SELECTION == 7:
         # search and rescue demo
         env = environments.SearchAndRescueEnv()
-        demo = Demo(env, 300, -1, 1000)
+        demo = Demo(env, 300, -1, 1000, seed=1)
         demo.plan()
         demo.draw_start([0, 0, 0, 1])
         demo.demo_parallel("../models/mobile_arm/mobile_arm.urdf", 1, rb.MobileArm)

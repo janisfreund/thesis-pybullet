@@ -12,14 +12,7 @@ from itertools import product, combinations, count
 BASE_LINK = -1
 MAX_DISTANCE = 0
 
-def pairwise_link_collision(body1, link1, body2, link2=BASE_LINK, max_distance=MAX_DISTANCE):  # 10000
-    # if len(p.getClosestPoints(bodyA=body1, bodyB=body2, distance=max_distance,
-    #                               linkIndexA=link1, linkIndexB=link2)) != 0:
-    #     points = p.getClosestPoints(bodyA=body1, bodyB=body2, distance=max_distance,
-    #                               linkIndexA=link1, linkIndexB=link2)
-    #     p.removeAllUserDebugItems()
-    #     p.addUserDebugPoints([point[5] for point in points], [[0, 0, 0] for _ in points], 5)
-    #     p.addUserDebugPoints([point[6] for point in points], [[1, 0, 0] for _ in points], 5)
+def pairwise_link_collision(body1, link1, body2, link2=BASE_LINK, max_distance=MAX_DISTANCE):
     return len(p.getClosestPoints(bodyA=body1, bodyB=body2, distance=max_distance,
                                   linkIndexA=link1, linkIndexB=link2)) != 0  # getContactPoints
 
@@ -37,7 +30,6 @@ def expand_links(body):
     return body, links
 
 def any_link_pair_collision(body1, links1, body2, links2=None, **kwargs):
-    # TODO: this likely isn't needed anymore
     if links1 is None:
         links1 = get_all_links(body1)
     if links2 is None:
